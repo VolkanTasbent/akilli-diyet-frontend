@@ -1,30 +1,34 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import api from '../api/client'
 
-export function RegisterPage() {
-  const { register } = useAuth()
+export function ResetPasswordPage() {
+  const [params] = useSearchParams()
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const tokenFromUrl = params.get('token')?.trim() ?? ''
+
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
-  const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
+    if (!tokenFromUrl) {
+      setError('Geçersiz bağlantı. E-postadaki bağlantıyı kullan veya yeni istek oluştur.')
+      return
+    }
     if (password !== passwordConfirm) {
       setError('Şifreler eşleşmiyor.')
       return
     }
     setBusy(true)
     try {
-      await register(email, password, displayName)
-      navigate('/')
+      await api.post('/api/auth/reset-password', { token: tokenFromUrl, newPassword: password })
+      navigate('/login', { replace: true, state: { resetOk: true } })
     } catch {
-      setError('Kayıt başarısız. E-posta kullanımda olabilir veya veriler geçersiz.')
+      setError('Bağlantı geçersiz, süresi dolmuş veya zaten kullanılmış olabilir. Yeni istek oluştur.')
     } finally {
       setBusy(false)
     }
@@ -33,31 +37,16 @@ export function RegisterPage() {
   return (
     <div className="auth-page">
       <div className="card auth-card">
-        <h1>Kayıt</h1>
-        <p className="muted">Şifre en az 8 karakter olmalıdır.</p>
-        <form onSubmit={onSubmit} className="form">
+        <h1>Yeni şifre</h1>
+        <p className="muted">Yeni şifren en az 8 karakter olsun.</p>
+        {!tokenFromUrl && (
+          <p className="error">
+            Bağlantıda token yok. <Link to="/forgot-password">Şifremi unuttum</Link> sayfasından tekrar iste.
+          </p>
+        )}
+        <form onSubmit={(e) => void onSubmit(e)} className="form">
           <label>
-            Ad / görünen isim
-            <input
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              required
-              maxLength={80}
-              autoComplete="name"
-            />
-          </label>
-          <label>
-            E-posta
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
-          </label>
-          <label>
-            Şifre
+            Yeni şifre
             <input
               type="password"
               value={password}
@@ -68,7 +57,7 @@ export function RegisterPage() {
             />
           </label>
           <label>
-            Şifre (tekrar)
+            Yeni şifre (tekrar)
             <input
               type="password"
               value={passwordConfirm}
@@ -79,12 +68,12 @@ export function RegisterPage() {
             />
           </label>
           {error && <p className="error">{error}</p>}
-          <button type="submit" className="btn primary" disabled={busy}>
-            {busy ? 'Kaydediliyor…' : 'Hesap oluştur'}
+          <button type="submit" className="btn primary" disabled={busy || !tokenFromUrl}>
+            {busy ? 'Kaydediliyor…' : 'Şifreyi güncelle'}
           </button>
         </form>
         <p className="muted small">
-          Zaten hesabınız var mı? <Link to="/login">Giriş yapın</Link>
+          <Link to="/login">← Giriş</Link>
         </p>
       </div>
     </div>
