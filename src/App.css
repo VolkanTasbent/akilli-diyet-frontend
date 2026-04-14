@@ -148,6 +148,10 @@
   margin-bottom: 1.25rem;
 }
 
+.weight-weekly-card {
+  margin-bottom: 1.25rem;
+}
+
 .trend-chart-wrap {
   margin-top: 0.75rem;
 }
@@ -511,4 +515,46 @@ a:hover {
 
 .food-log-edit {
   margin: 0;
+}
+
+.food-mine-section {
+  margin-bottom: 1.25rem;
+}
+
+.food-mine-list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.food-mine-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+
+.food-mine-info {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.food-mine-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.food-mine-edit {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
 }

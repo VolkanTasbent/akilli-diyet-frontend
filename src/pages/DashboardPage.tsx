@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { RemindersPanel } from '../components/RemindersPanel'
+import { WeightWeeklySummaryChart } from '../components/WeightWeeklySummaryChart'
 import { WeeklyTrendChart } from '../components/WeeklyTrendChart'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
@@ -72,6 +73,7 @@ export function DashboardPage() {
   const [busy, setBusy] = useState(false)
   const [trends, setTrends] = useState<TrendRangeDto | null>(null)
   const [trendDays, setTrendDays] = useState<7 | 14 | 30>(7)
+  const [weightTrends12w, setWeightTrends12w] = useState<TrendRangeDto | null>(null)
   const [foodLogs, setFoodLogs] = useState<FoodLogResponseDto[]>([])
   const [editingLog, setEditingLog] = useState<{
     id: number
@@ -107,6 +109,12 @@ export function DashboardPage() {
     setTrends(data)
   }, [trendDays])
 
+  const loadWeightTrends12w = useCallback(async () => {
+    const { from, to } = trendRange(84)
+    const { data } = await api.get<TrendRangeDto>('/api/me/trends', { params: { from, to } })
+    setWeightTrends12w(data)
+  }, [])
+
   const loadExerciseRows = useCallback(async () => {
     const { data } = await api.get<ExerciseLogResponseDto[]>('/api/logs/exercise', {
       params: { date: summaryDate },
@@ -140,6 +148,10 @@ export function DashboardPage() {
   useEffect(() => {
     loadTrends().catch(() => {})
   }, [loadTrends])
+
+  useEffect(() => {
+    loadWeightTrends12w().catch(() => setWeightTrends12w(null))
+  }, [loadWeightTrends12w, user?.targetWeightKg])
 
   useEffect(() => {
     if (user?.weightKg != null) setWeightKg(user.weightKg)
@@ -307,7 +319,13 @@ export function DashboardPage() {
     setBusy(true)
     try {
       await api.post('/api/logs/weight', { date: summaryDate, weightKg })
-      await Promise.all([load(), loadTrends(), loadWeeklyScore(), loadExerciseRows()])
+      await Promise.all([
+        load(),
+        loadTrends(),
+        loadWeightTrends12w(),
+        loadWeeklyScore(),
+        loadExerciseRows(),
+      ])
     } catch {
       setError('Kilo kaydedilemedi.')
     } finally {
@@ -374,6 +392,17 @@ export function DashboardPage() {
             {trends.from} — {trends.to} · hedef ~{trends.targetCalories} kcal / gün
           </p>
           <WeeklyTrendChart trends={trends} />
+        </section>
+      )}
+
+      {weightTrends12w && (
+        <section className="card weight-weekly-card">
+          <h2>Kilo — haftalık özet</h2>
+          <p className="muted small">
+            Son 12 hafta ({weightTrends12w.from} — {weightTrends12w.to}). Haftalık <strong>ortalama</strong>,{' '}
+            <strong>min–max bant</strong> ve haftanın <strong>son ölçümü</strong> birlikte gösterilir.
+          </p>
+          <WeightWeeklySummaryChart trends={weightTrends12w} />
         </section>
       )}
 

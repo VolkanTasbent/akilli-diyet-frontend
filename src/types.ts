@@ -42,6 +42,8 @@ export type FoodResponse = {
   fatPer100g: number
   tablespoonGrams: number | null
   custom: boolean
+  /** Günlükte kullanılıyorsa silinemez */
+  usedInLogs?: boolean
 }
 
 export type FoodLogResponseDto = {
@@ -96,6 +98,7 @@ export type TrendRangeDto = {
   to: string
   targetCalories: number
   targetProteinG: number
+  targetWeightKg: number | null
   days: TrendDayDto[]
 }
 

@@ -59,6 +59,8 @@ function TrendTooltip({
 
 export function WeeklyTrendChart({ trends }: Props) {
   const hasWeight = trends.days.some((d) => d.weightKg != null)
+  const targetKg = trends.targetWeightKg
+  const showTargetWeightLine = hasWeight && targetKg != null
   const hasSleep = trends.days.some((d) => d.sleepHours != null && d.sleepHours > 0)
   const showSleepLine = hasSleep && !hasWeight
 
@@ -153,16 +155,27 @@ export function WeeklyTrendChart({ trends }: Props) {
             dot={false}
           />
           {hasWeight && (
-            <Line
-              yAxisId="kg"
-              type="monotone"
-              dataKey="weight"
-              name="Kilo"
-              stroke="#7c3aed"
-              strokeWidth={2}
-              dot={{ r: 3 }}
-              connectNulls
-            />
+            <>
+              {showTargetWeightLine && (
+                <ReferenceLine
+                  yAxisId="kg"
+                  y={targetKg}
+                  stroke="#ea580c"
+                  strokeDasharray="6 4"
+                  label={{ value: 'Hedef kg', fill: '#c2410c', fontSize: 10, position: 'insideTopRight' }}
+                />
+              )}
+              <Line
+                yAxisId="kg"
+                type="monotone"
+                dataKey="weight"
+                name="Kilo"
+                stroke="#7c3aed"
+                strokeWidth={2}
+                dot={{ r: 3 }}
+                connectNulls
+              />
+            </>
           )}
           {showSleepLine && (
             <Line
