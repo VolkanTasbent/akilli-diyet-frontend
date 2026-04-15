@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { RemindersPanel } from '../components/RemindersPanel'
+import { ShareWeeklySummaryCard } from '../components/ShareWeeklySummaryCard'
 import { WeightWeeklySummaryChart } from '../components/WeightWeeklySummaryChart'
 import { WeeklyTrendChart } from '../components/WeeklyTrendChart'
 import api from '../api/client'
@@ -352,23 +353,31 @@ export function DashboardPage() {
       <RemindersPanel />
 
       {weeklyScore && (
-        <section className="card score-card">
-          <div className="score-row">
-            <div>
-              <h2 className="score-title">Haftalık başarı</h2>
-              <p className="muted small">{weeklyScore.periodLabelTr} (bugüne kadar 7 gün)</p>
+        <>
+          <section className="card score-card">
+            <div className="score-row">
+              <div>
+                <h2 className="score-title">Haftalık başarı</h2>
+                <p className="muted small">{weeklyScore.periodLabelTr} (bugüne kadar 7 gün)</p>
+              </div>
+              <div className="score-circle" aria-label={`Skor ${weeklyScore.score}`}>
+                <span className="score-num">{weeklyScore.score}</span>
+                <span className="score-max">/100</span>
+              </div>
             </div>
-            <div className="score-circle" aria-label={`Skor ${weeklyScore.score}`}>
-              <span className="score-num">{weeklyScore.score}</span>
-              <span className="score-max">/100</span>
-            </div>
-          </div>
-          <ul className="list">
-            {weeklyScore.hintsTr.map((h) => (
-              <li key={h}>{h}</li>
-            ))}
-          </ul>
-        </section>
+            <ul className="list">
+              {weeklyScore.hintsTr.map((h) => (
+                <li key={h}>{h}</li>
+              ))}
+            </ul>
+          </section>
+          <ShareWeeklySummaryCard
+            displayName={user?.displayName}
+            weeklyScore={weeklyScore}
+            trends={trends}
+            streakDays={summary?.logStreakDays ?? 0}
+          />
+        </>
       )}
 
       {trends && trends.days.length > 0 && (
