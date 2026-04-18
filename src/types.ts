@@ -26,6 +26,11 @@ export type UserResponse = {
   city: string | null
   studentMode: boolean | null
   dailyWaterGoalMl: number | null
+  reminderEmailEnabled?: boolean
+  reminderEmailWater?: boolean
+  reminderEmailBreakfast?: boolean
+  reminderEmailLunch?: boolean
+  reminderEmailDinner?: boolean
 }
 
 export type AuthResponse = {
