@@ -4,32 +4,49 @@
   font-weight: 400;
   font-size: 15px;
   color: var(--text);
-  background-color: var(--bg-page);
-  background-image: radial-gradient(ellipse 100% 80% at 50% -30%, rgba(13, 148, 136, 0.11), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 100% 20%, rgba(14, 116, 144, 0.08), transparent 50%),
-    radial-gradient(ellipse 60% 40% at 0% 80%, rgba(100, 116, 139, 0.06), transparent 45%);
+  background-color: var(--bg-base);
+  background-image: radial-gradient(120% 80% at 50% -35%, rgba(20, 184, 166, 0.14), transparent 52%),
+    radial-gradient(90% 55% at 110% 0%, rgba(59, 130, 246, 0.09), transparent 48%),
+    radial-gradient(70% 50% at -15% 100%, rgba(99, 102, 241, 0.06), transparent 42%),
+    linear-gradient(180deg, var(--bg-base) 0%, var(--bg-deep) 100%);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  --text: #0f172a;
-  --text-secondary: #334155;
-  --muted: #64748b;
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
+  /* —— Palet: derin nötr + net marka —— */
+  --text: #0b1220;
+  --text-secondary: #3d4a5c;
+  --muted: #5f6e82;
+  --border: rgba(15, 23, 42, 0.09);
+  --border-strong: rgba(15, 23, 42, 0.14);
   --card: #ffffff;
-  --input-bg: #ffffff;
-  --chip-bg: #f8fafc;
-  --bg-page: #eef2f7;
-  --accent: #0f766e;
-  --accent-hover: #0d9488;
-  --accent-muted: rgba(15, 118, 110, 0.09);
-  --focus-ring: 0 0 0 3px rgba(15, 118, 110, 0.28);
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  --card-soft: linear-gradient(165deg, #ffffff 0%, #f7f9fc 55%, #f3f6fa 100%);
+  --input-bg: #fbfcfe;
+  --chip-bg: #f0f3f8;
+  --bg-base: #e4e9f2;
+  --bg-deep: #dce3ef;
+  --surface-nav: rgba(255, 255, 255, 0.78);
+  --accent: #0d6b63;
+  --accent-bright: #0f9b8e;
+  --accent-deep: #095c55;
+  --accent-hover: #0e8077;
+  --accent-muted: rgba(13, 107, 99, 0.1);
+  --accent-glow: rgba(15, 155, 142, 0.22);
+  --indigo-tint: rgba(79, 70, 229, 0.06);
+  --focus-ring: 0 0 0 3px rgba(13, 107, 99, 0.28);
+  --radius-sm: 9px;
+  --radius-md: 13px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 10px 24px -6px rgba(15, 23, 42, 0.09);
+  --shadow-lg: 0 12px 40px -12px rgba(15, 23, 42, 0.14);
+  --shadow-card: var(--shadow-xs), 0 16px 48px -20px rgba(15, 23, 42, 0.12);
   --shadow: var(--shadow-md);
+}
+
+html {
+  color-scheme: light;
 }
 
 *,
@@ -42,10 +59,12 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 :focus {
@@ -53,7 +72,7 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--accent-bright);
   outline-offset: 2px;
 }
 

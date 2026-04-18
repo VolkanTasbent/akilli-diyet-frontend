@@ -4,8 +4,8 @@
   "description": "Günlük beslenme ve aktivite takibi",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#0f766e",
+  "background_color": "#e4e9f2",
+  "theme_color": "#0d6b63",
   "lang": "tr",
   "icons": [
     {
