@@ -1,7 +1,142 @@
 .layout {
-  max-width: 1100px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 1.5rem 1.25rem 3rem;
+}
+
+.dash-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0 0 1.35rem;
+  padding: 0.35rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+}
+
+.dash-tab {
+  border: none;
+  border-radius: 10px;
+  padding: 0.5rem 0.95rem;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 550;
+  cursor: pointer;
+  color: var(--muted);
+  background: transparent;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dash-tab:hover {
+  color: var(--text);
+  background: var(--chip-bg);
+}
+
+.dash-tab.active {
+  color: #fff;
+  background: linear-gradient(135deg, #0d9488, #0891b2);
+  box-shadow: 0 2px 12px rgba(13, 148, 136, 0.35);
+}
+
+.besinler-grid {
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .besinler-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  }
+}
+
+.activity-grid {
+  max-width: 720px;
+}
+
+.food-catalog {
+  max-height: min(52vh, 380px);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.35rem;
+  background: var(--chip-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.food-catalog-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 0.55rem 0.65rem;
+  font: inherit;
+  cursor: pointer;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.food-catalog-row:hover {
+  border-color: #99f6e4;
+  background: #f0fdfa;
+}
+
+.food-catalog-row.active {
+  border-color: #0d9488;
+  background: linear-gradient(135deg, #ecfdf5, #e0f2fe);
+  box-shadow: 0 0 0 1px rgba(13, 148, 136, 0.25);
+}
+
+.food-catalog-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.food-catalog-nutrients {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
+.food-catalog-kcal {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: #0f766e;
+  white-space: nowrap;
+}
+
+.food-catalog-macros {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .food-catalog-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .food-catalog-nutrients {
+    align-items: flex-start;
+  }
+
+  .food-catalog-macros {
+    white-space: normal;
+  }
 }
 
 .layout.narrow {
@@ -18,9 +153,13 @@
 
 .topbar h1 {
   margin: 0 0 0.25rem;
-  font-size: 1.5rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(120deg, #0f766e, #0e7490);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .day-nav {
@@ -198,7 +337,7 @@
 .card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 1.25rem 1.35rem;
   box-shadow: var(--shadow);
 }

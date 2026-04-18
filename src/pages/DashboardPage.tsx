@@ -95,6 +95,7 @@ export function DashboardPage() {
   const [trendDays, setTrendDays] = useState<7 | 14 | 30>(7)
   const [weightTrends12w, setWeightTrends12w] = useState<TrendRangeDto | null>(null)
   const [foodLogs, setFoodLogs] = useState<FoodLogResponseDto[]>([])
+  const [dashTab, setDashTab] = useState<'ozet' | 'besinler' | 'hareket' | 'grafikler'>('ozet')
   const [editingLog, setEditingLog] = useState<{
     id: number
     mealType: MealType
@@ -412,9 +413,33 @@ export function DashboardPage() {
         </section>
       )}
 
-      <RemindersPanel />
+      <nav className="dash-tabs" role="tablist" aria-label="Bölümler">
+        {(
+          [
+            ['ozet', 'Özet'],
+            ['besinler', 'Besinler'],
+            ['hareket', 'Hareket'],
+            ['grafikler', 'Grafikler'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={dashTab === id}
+            className={`dash-tab${dashTab === id ? ' active' : ''}`}
+            onClick={() => setDashTab(id)}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
 
-      {weeklyScore && (
+      {dashTab === 'ozet' && (
+        <>
+          <RemindersPanel />
+
+          {weeklyScore && (
         <>
           <section className="card score-card">
             <div className="score-row">
@@ -440,44 +465,9 @@ export function DashboardPage() {
             streakDays={summary?.logStreakDays ?? 0}
           />
         </>
-      )}
+          )}
 
-      {trends && trends.days.length > 0 && (
-        <section className="card trend-card">
-          <div className="trend-head">
-            <h2>Trend</h2>
-            <div className="segmented" role="group" aria-label="Gün aralığı">
-              {([7, 14, 30] as const).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className={trendDays === n ? 'seg active' : 'seg'}
-                  onClick={() => setTrendDays(n)}
-                >
-                  {n} gün
-                </button>
-              ))}
-            </div>
-          </div>
-          <p className="muted small">
-            {trends.from} — {trends.to} · hedef ~{trends.targetCalories} kcal / gün
-          </p>
-          <WeeklyTrendChart trends={trends} />
-        </section>
-      )}
-
-      {weightTrends12w && (
-        <section className="card weight-weekly-card">
-          <h2>Kilo — haftalık özet</h2>
-          <p className="muted small">
-            Son 12 hafta ({weightTrends12w.from} — {weightTrends12w.to}). Haftalık <strong>ortalama</strong>,{' '}
-            <strong>min–max bant</strong> ve haftanın <strong>son ölçümü</strong> birlikte gösterilir.
-          </p>
-          <WeightWeeklySummaryChart trends={weightTrends12w} />
-        </section>
-      )}
-
-      {summary && (
+          {summary && (
         <div className="grid">
           <section className="card">
             <div className="day-nav">
@@ -626,9 +616,28 @@ export function DashboardPage() {
               })}
             </div>
           </section>
+        </div>
+      )}
 
+        </>
+      )}
+
+      {dashTab === 'besinler' && summary && (
+        <div className="grid besinler-grid">
           <section className="card">
             <h2>Öğün ekle</h2>
+            <p className="muted small">
+              Gün: {formatDayNavLabel(summaryDate)}
+              {summaryDate !== todayISO() && (
+                <>
+                  {' '}
+                  ·{' '}
+                  <button type="button" className="btn-link" onClick={() => setSummaryDate(todayISO())}>
+                    Bugüne dön
+                  </button>
+                </>
+              )}
+            </p>
             <h3 className="h3">Özel besin (100 g)</h3>
             <form onSubmit={onCreateCustomFood} className="form compact food-custom-form">
               <label>
@@ -693,13 +702,16 @@ export function DashboardPage() {
                 Besin ara
                 <input value={foodQuery} onChange={(e) => setFoodQuery(e.target.value)} />
               </label>
+              <p className="muted small">Aramayı boş bırakırsanız tüm katalog listelenir; yazdıkça daralır.</p>
               {foods.length > 0 && (
-                <div className="food-pick">
-                  {foods.slice(0, 8).map((f) => (
+                <div className="food-catalog" role="listbox" aria-label="Besin listesi">
+                  {foods.map((f) => (
                     <button
                       type="button"
                       key={f.id}
-                      className={selectedFood?.id === f.id ? 'chip active' : 'chip'}
+                      role="option"
+                      aria-selected={selectedFood?.id === f.id}
+                      className={`food-catalog-row${selectedFood?.id === f.id ? ' active' : ''}`}
                       onClick={() => {
                         setSelectedFood(f)
                         if (editingLog) {
@@ -707,8 +719,16 @@ export function DashboardPage() {
                         }
                       }}
                     >
-                      {f.custom ? '★ ' : ''}
-                      {f.name}
+                      <span className="food-catalog-name">
+                        {f.custom ? '★ ' : ''}
+                        {f.name}
+                      </span>
+                      <span className="food-catalog-nutrients">
+                        <span className="food-catalog-kcal">{f.caloriesPer100g} kcal / 100g</span>
+                        <span className="food-catalog-macros muted small">
+                          P {f.proteinPer100g}g · K {f.carbsPer100g}g · Y {f.fatPer100g}g
+                        </span>
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -852,6 +872,26 @@ export function DashboardPage() {
                 ))}
               </ul>
             )}
+          </section>
+        </div>
+      )}
+
+      {dashTab === 'hareket' && summary && (
+        <div className="grid activity-grid">
+          <section className="card activity-card">
+            <h2>Hareket, sıvı ve ölçüm</h2>
+            <p className="muted small">
+              Gün: {formatDayNavLabel(summaryDate)}
+              {summaryDate !== todayISO() && (
+                <>
+                  {' '}
+                  ·{' '}
+                  <button type="button" className="btn-link" onClick={() => setSummaryDate(todayISO())}>
+                    Bugüne dön
+                  </button>
+                </>
+              )}
+            </p>
 
             <h3 className="h3">Egzersiz</h3>
             <form onSubmit={onLogExercise} className="form compact">
@@ -957,6 +997,52 @@ export function DashboardPage() {
             <p className="muted small">Aynı güne tekrar kaydedersen değer güncellenir.</p>
           </section>
         </div>
+      )}
+
+      {dashTab === 'grafikler' && (
+        <>
+          {(!trends || trends.days.length === 0) && !weightTrends12w && (
+            <section className="card">
+              <p className="muted small" role="status">
+                Grafikler için önce birkaç gün kayıt ekleyin; kalori trendi ve kilo özeti veri geldikçe burada görünür.
+              </p>
+            </section>
+          )}
+          {trends && trends.days.length > 0 && (
+            <section className="card trend-card">
+              <div className="trend-head">
+                <h2>Trend</h2>
+                <div className="segmented" role="group" aria-label="Gün aralığı">
+                  {([7, 14, 30] as const).map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      className={trendDays === n ? 'seg active' : 'seg'}
+                      onClick={() => setTrendDays(n)}
+                    >
+                      {n} gün
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="muted small">
+                {trends.from} — {trends.to} · hedef ~{trends.targetCalories} kcal / gün
+              </p>
+              <WeeklyTrendChart trends={trends} />
+            </section>
+          )}
+
+          {weightTrends12w && (
+            <section className="card weight-weekly-card">
+              <h2>Kilo — haftalık özet</h2>
+              <p className="muted small">
+                Son 12 hafta ({weightTrends12w.from} — {weightTrends12w.to}). Haftalık <strong>ortalama</strong>,{' '}
+                <strong>min–max bant</strong> ve haftanın <strong>son ölçümü</strong> birlikte gösterilir.
+              </p>
+              <WeightWeeklySummaryChart trends={weightTrends12w} />
+            </section>
+          )}
+        </>
       )}
     </div>
   )
