@@ -3,7 +3,7 @@ type Props = {
   variant?: 'default' | 'auth'
 }
 
-const GITHUB = 'https://github.com/VolkanTasbent'
+const AUTHOR_LINKEDIN = 'https://www.linkedin.com/in/volkantasbent'
 
 export function SiteFooter({ variant = 'default' }: Props) {
   const cls = variant === 'auth' ? 'site-footer site-footer--auth' : 'site-footer'
@@ -11,7 +11,7 @@ export function SiteFooter({ variant = 'default' }: Props) {
     <footer className={cls}>
       <p className="site-footer-text muted small">
         Created by{' '}
-        <a href={GITHUB} target="_blank" rel="noreferrer noopener">
+        <a href={AUTHOR_LINKEDIN} target="_blank" rel="noreferrer noopener">
           Volkan Taşbent
         </a>
       </p>
