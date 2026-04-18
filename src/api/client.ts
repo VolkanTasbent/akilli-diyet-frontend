@@ -1,4 +1,7 @@
 import axios from 'axios'
+import { API_BASE_URL, apiUrl } from './baseUrl'
+
+export { apiUrl }
 
 /** Sunucudan gelen hata metnini oku (Problem Details veya eski Spring gövdesi). */
 export function getApiErrorMessage(err: unknown): string | null {
@@ -22,7 +25,7 @@ export function getApiErrorMessage(err: unknown): string | null {
 }
 
 const api = axios.create({
-  baseURL: '/',
+  baseURL: API_BASE_URL || '/',
   headers: { 'Content-Type': 'application/json' },
 })
 

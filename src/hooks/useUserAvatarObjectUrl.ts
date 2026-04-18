@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { apiUrl } from '../api/baseUrl'
 import type { UserResponse } from '../types'
 
 /**
@@ -19,7 +20,7 @@ export function useUserAvatarObjectUrl(user: UserResponse | null, token: string 
     }
     let cancelled = false
     const ac = new AbortController()
-    fetch('/api/me/avatar', {
+    fetch(apiUrl('/api/me/avatar'), {
       headers: { Authorization: `Bearer ${token}` },
       signal: ac.signal,
     })

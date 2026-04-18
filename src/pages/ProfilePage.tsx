@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import api from '../api/client'
+import api, { apiUrl } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useUserAvatarObjectUrl } from '../hooks/useUserAvatarObjectUrl'
 import type { ActivityLevel, DietGoal, Gender, FoodResponse, UserResponse } from '../types'
@@ -54,7 +54,7 @@ export function ProfilePage() {
     try {
       const fd = new FormData()
       fd.append('file', file)
-      const res = await fetch('/api/me/avatar', {
+      const res = await fetch(apiUrl('/api/me/avatar'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: fd,
@@ -81,7 +81,7 @@ export function ProfilePage() {
     setMsg(null)
     setAvatarBusy(true)
     try {
-      const res = await fetch('/api/me/avatar', {
+      const res = await fetch(apiUrl('/api/me/avatar'), {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
