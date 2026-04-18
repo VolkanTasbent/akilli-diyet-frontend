@@ -114,6 +114,43 @@
   gap: 1.125rem;
 }
 
+.profile-page-primary {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@media (min-width: 900px) {
+  .grid.profile-page-grid {
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .profile-page-grid .food-mine-section {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+.profile-card-heading {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.profile-card-lead {
+  margin: 0 0 1rem;
+  line-height: 1.55;
+}
+
+.profile-settings-form > .profile-card-heading + .profile-card-lead {
+  margin-top: -0.1rem;
+}
+
 .dash-ozet-layout {
   display: grid;
   gap: 1.25rem;
@@ -418,7 +455,110 @@
 }
 
 .activity-grid {
-  max-width: 720px;
+  width: 100%;
+  max-width: none;
+}
+
+.hareket-day-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem 1.25rem;
+  margin-bottom: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.96));
+}
+
+.day-nav--hareket {
+  flex: 1 1 220px;
+  min-width: min(100%, 240px);
+  margin-bottom: 0;
+}
+
+.hareket-day-title {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.hareket-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+}
+
+.hareket-date-field-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.hareket-date-field input[type='date'] {
+  font: inherit;
+  padding: 0.45rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: #fff;
+  min-width: 10.5rem;
+}
+
+.hareket-back-today {
+  margin: 0 0 0.35rem;
+}
+
+.hareket-day-hint {
+  margin: 0 0 1.1rem;
+}
+
+.sleep-log-panel {
+  margin-top: 0.25rem;
+  padding: 1rem 1rem 0.85rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(13, 107, 99, 0.14);
+  background: linear-gradient(165deg, rgba(239, 253, 250, 0.55), rgba(255, 255, 255, 0.9));
+}
+
+.sleep-log-form {
+  display: grid;
+  grid-template-columns: minmax(9rem, 1fr) minmax(7rem, 1fr) auto;
+  gap: 0.75rem 1rem;
+  align-items: end;
+}
+
+.sleep-log-field--date input[type='date'],
+.sleep-log-field--hours input {
+  font: inherit;
+  padding: 0.45rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: #fff;
+}
+
+.sleep-log-submit {
+  display: flex;
+  align-items: flex-end;
+}
+
+.sleep-log-submit .btn {
+  white-space: nowrap;
+}
+
+.sleep-log-foot {
+  margin: 0.85rem 0 0;
+}
+
+@media (max-width: 640px) {
+  .sleep-log-form {
+    grid-template-columns: 1fr;
+  }
+
+  .sleep-log-submit .btn {
+    width: 100%;
+  }
 }
 
 .food-catalog {

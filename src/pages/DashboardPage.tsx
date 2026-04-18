@@ -980,17 +980,54 @@ export function DashboardPage() {
         <div className="grid activity-grid">
           <section className="card activity-card">
             <h2>Hareket, sıvı ve ölçüm</h2>
-            <p className="muted small">
-              Gün: {formatDayNavLabel(summaryDate)}
-              {summaryDate !== todayISO() && (
-                <>
-                  {' '}
-                  ·{' '}
-                  <button type="button" className="btn-link" onClick={() => setSummaryDate(todayISO())}>
-                    Bugüne dön
-                  </button>
-                </>
-              )}
+            <div className="hareket-day-toolbar">
+              <div className="day-nav day-nav--hareket">
+                <button
+                  type="button"
+                  className="btn ghost day-nav-btn"
+                  onClick={() => setSummaryDate((d) => addDaysISO(d, -1))}
+                  aria-label="Önceki gün"
+                >
+                  ←
+                </button>
+                <div className="day-nav-center">
+                  <p className="day-nav-title hareket-day-title">
+                    {summaryDate === todayISO() ? 'Bugün' : 'Seçili gün'}
+                  </p>
+                  <p className="muted small day-nav-date">{formatDayNavLabel(summaryDate)}</p>
+                </div>
+                <button
+                  type="button"
+                  className="btn ghost day-nav-btn"
+                  disabled={summaryDate >= todayISO()}
+                  onClick={() => setSummaryDate((d) => addDaysISO(d, 1))}
+                  aria-label="Sonraki gün"
+                >
+                  →
+                </button>
+              </div>
+              <label className="hareket-date-field">
+                <span className="hareket-date-field-label">Takvim</span>
+                <input
+                  type="date"
+                  value={summaryDate}
+                  max={todayISO()}
+                  onChange={(e) => {
+                    const v = e.target.value
+                    if (v) setSummaryDate(v)
+                  }}
+                />
+              </label>
+            </div>
+            {summaryDate !== todayISO() && (
+              <p className="muted small hareket-back-today">
+                <button type="button" className="btn-link" onClick={() => setSummaryDate(todayISO())}>
+                  Bugüne dön
+                </button>
+              </p>
+            )}
+            <p className="muted small hareket-day-hint">
+              Egzersiz, uyku, su ve kilo aşağıda <strong>bu güne</strong> yazılır.
             </p>
 
             <h3 className="h3">Egzersiz</h3>
@@ -1041,24 +1078,42 @@ export function DashboardPage() {
             )}
             <p className="muted small">Birden fazla kayıt ekleyebilirsin; gün toplamı özette görünür.</p>
 
-            <h3 className="h3">Uyku</h3>
-            <form onSubmit={onLogSleep} className="form compact">
-              <label>
-                Süre (saat)
-                <input
-                  type="number"
-                  min={0.5}
-                  max={24}
-                  step={0.5}
-                  value={sleepHours}
-                  onChange={(e) => setSleepHours(Number(e.target.value))}
-                />
-              </label>
-              <button type="submit" className="btn secondary" disabled={busy}>
-                Uykuyu kaydet
-              </button>
-            </form>
-            <p className="muted small">Seçili güne yazar; aynı günü tekrar kaydedersen güncellenir.</p>
+            <div className="sleep-log-panel">
+              <h3 className="h3">Uyku</h3>
+              <form onSubmit={onLogSleep} className="form compact sleep-log-form">
+                <label className="sleep-log-field sleep-log-field--date">
+                  Kayıt günü
+                  <input
+                    type="date"
+                    value={summaryDate}
+                    max={todayISO()}
+                    onChange={(e) => {
+                      const v = e.target.value
+                      if (v) setSummaryDate(v)
+                    }}
+                  />
+                </label>
+                <label className="sleep-log-field sleep-log-field--hours">
+                  Süre (saat)
+                  <input
+                    type="number"
+                    min={0.5}
+                    max={24}
+                    step={0.5}
+                    value={sleepHours}
+                    onChange={(e) => setSleepHours(Number(e.target.value))}
+                  />
+                </label>
+                <div className="sleep-log-submit">
+                  <button type="submit" className="btn secondary" disabled={busy}>
+                    Uykuyu kaydet
+                  </button>
+                </div>
+              </form>
+              <p className="muted small sleep-log-foot">
+                Bu formdaki tarih üstteki güne gezgini ile aynıdır. Aynı günü tekrar kaydedersen süre güncellenir.
+              </p>
+            </div>
 
             <h3 className="h3">Su ekle</h3>
             <form onSubmit={onAddWater} className="form row">

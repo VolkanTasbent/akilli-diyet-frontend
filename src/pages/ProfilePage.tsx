@@ -15,7 +15,7 @@ type FoodEditDraft = {
 }
 
 export function ProfilePage() {
-  const { refreshUser, token, user } = useAuth()
+  const { refreshUser, token, user, logout } = useAuth()
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [form, setForm] = useState<Partial<UserResponse>>({})
@@ -186,19 +186,40 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="layout narrow">
-      <header className="topbar">
-        <div>
-          <h1>Profil & hedefler</h1>
-          <p className="muted small">
-            <Link to="/">← Panele dön</Link>
-          </p>
+    <div className="layout layout-dash">
+      <header className="topbar topbar-dash">
+        <div className="topbar-brand">
+          {avatarPreviewUrl ? (
+            <img src={avatarPreviewUrl} alt="" className="user-avatar user-avatar--sm" width={40} height={40} />
+          ) : (
+            <span className="brand-mark" aria-hidden />
+          )}
+          <div>
+            <h1>Profil ve hedefler</h1>
+            <p className="muted small topbar-tagline">
+              <Link to="/">← Panele dön</Link>
+            </p>
+          </div>
         </div>
+        <button type="button" className="btn ghost" onClick={logout}>
+          Çıkış
+        </button>
       </header>
 
       {err && <p className="error banner">{err}</p>}
       {msg && <p className="success banner">{msg}</p>}
 
+      <header className="tab-panel-intro" aria-label="Profil özeti">
+        <span className="tab-panel-kicker">Hesap</span>
+        <p className="tab-panel-lead">Profil, hedefler ve özel besinler</p>
+        <p className="tab-panel-desc muted small">
+          Görünen isim, vücut ölçüleri ve diyet hedeflerin günlük özet ve koç önerilerinde kullanılır. Özel besinlerini
+          buradan yönetirsin.
+        </p>
+      </header>
+
+      <div className="grid profile-page-grid tab-panel-block">
+        <div className="profile-page-primary">
       <section className="card profile-avatar-card">
         <h2>Profil fotoğrafı</h2>
         <p className="muted small">JPEG, PNG, WebP veya GIF; en fazla 2 MB.</p>
@@ -241,128 +262,11 @@ export function ProfilePage() {
         </div>
       </section>
 
-      <section className="card food-mine-section">
-        <h2>Özel besinlerim</h2>
-        <p className="muted small">
-          Panelde eklediğin besinleri burada düzenleyebilir veya silebilirsin. Günlükte kullanılan besin önce
-          kayıttan çıkarılmalıdır.
+      <form className="card form profile-settings-form" onSubmit={onSubmit}>
+        <h2 className="profile-card-heading">Kişisel bilgiler ve hedefler</h2>
+        <p className="muted small profile-card-lead">
+          Kalori hedefi ve makrolar bu bilgilere göre hesaplanır; istediğin zaman güncelleyebilirsin.
         </p>
-        {foodErr && <p className="error banner">{foodErr}</p>}
-        {customFoods.length === 0 ? (
-          <p className="muted small">Henüz özel besin yok; panelden &quot;Özel besin&quot; ile ekleyebilirsin.</p>
-        ) : (
-          <ul className="food-mine-list">
-            {customFoods.map((f) => (
-              <li key={f.id} className="food-mine-row">
-                <div className="food-mine-info">
-                  <strong>{f.name}</strong>
-                  <span className="muted small">
-                    {' '}
-                    · {Math.round(f.caloriesPer100g)} kcal / 100g · P {f.proteinPer100g} · K {f.carbsPer100g} · Y{' '}
-                    {f.fatPer100g}
-                    {f.usedInLogs ? ' · günlükte kullanılıyor' : ''}
-                  </span>
-                </div>
-                <div className="food-mine-actions">
-                  <button
-                    type="button"
-                    className="btn ghost small"
-                    disabled={foodBusy}
-                    onClick={() => startFoodEdit(f)}
-                  >
-                    Düzenle
-                  </button>
-                  <button
-                    type="button"
-                    className="btn ghost small"
-                    disabled={foodBusy || !!f.usedInLogs}
-                    title={f.usedInLogs ? 'Önce günlük kayıtlarını kaldır' : undefined}
-                    onClick={() => void onDeleteFood(f)}
-                  >
-                    Sil
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-        {editDraft && (
-          <form className="form compact food-mine-edit" onSubmit={(e) => void onSaveFoodEdit(e)}>
-            <h3 className="h3">Düzenle</h3>
-            <label>
-              Ad
-              <input
-                value={editDraft.name}
-                onChange={(e) => setEditDraft((d) => (d ? { ...d, name: e.target.value } : d))}
-                maxLength={200}
-              />
-            </label>
-            <div className="macro-inputs">
-              <label>
-                kcal / 100g
-                <input
-                  type="number"
-                  min={1}
-                  step={1}
-                  value={editDraft.caloriesPer100g}
-                  onChange={(e) =>
-                    setEditDraft((d) => (d ? { ...d, caloriesPer100g: Number(e.target.value) } : d))
-                  }
-                />
-              </label>
-              <label>
-                P
-                <input
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  value={editDraft.proteinPer100g}
-                  onChange={(e) =>
-                    setEditDraft((d) => (d ? { ...d, proteinPer100g: Number(e.target.value) } : d))
-                  }
-                />
-              </label>
-              <label>
-                K
-                <input
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  value={editDraft.carbsPer100g}
-                  onChange={(e) =>
-                    setEditDraft((d) => (d ? { ...d, carbsPer100g: Number(e.target.value) } : d))
-                  }
-                />
-              </label>
-              <label>
-                Y
-                <input
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  value={editDraft.fatPer100g}
-                  onChange={(e) => setEditDraft((d) => (d ? { ...d, fatPer100g: Number(e.target.value) } : d))}
-                />
-              </label>
-            </div>
-            <div className="food-mine-actions">
-              <button type="submit" className="btn primary small" disabled={foodBusy}>
-                Kaydet
-              </button>
-              <button
-                type="button"
-                className="btn ghost small"
-                disabled={foodBusy}
-                onClick={() => setEditDraft(null)}
-              >
-                Vazgeç
-              </button>
-            </div>
-          </form>
-        )}
-      </section>
-
-      <form className="card form" onSubmit={onSubmit}>
         <label>
           Görünen isim
           <input
@@ -520,6 +424,129 @@ export function ProfilePage() {
           Kaydet
         </button>
       </form>
+        </div>
+
+      <section className="card food-mine-section">
+        <h2>Özel besinlerim</h2>
+        <p className="muted small">
+          Panelde eklediğin besinleri burada düzenleyebilir veya silebilirsin. Günlükte kullanılan besin önce
+          kayıttan çıkarılmalıdır.
+        </p>
+        {foodErr && <p className="error banner">{foodErr}</p>}
+        {customFoods.length === 0 ? (
+          <p className="muted small">Henüz özel besin yok; panelden &quot;Özel besin&quot; ile ekleyebilirsin.</p>
+        ) : (
+          <ul className="food-mine-list">
+            {customFoods.map((f) => (
+              <li key={f.id} className="food-mine-row">
+                <div className="food-mine-info">
+                  <strong>{f.name}</strong>
+                  <span className="muted small">
+                    {' '}
+                    · {Math.round(f.caloriesPer100g)} kcal / 100g · P {f.proteinPer100g} · K {f.carbsPer100g} · Y{' '}
+                    {f.fatPer100g}
+                    {f.usedInLogs ? ' · günlükte kullanılıyor' : ''}
+                  </span>
+                </div>
+                <div className="food-mine-actions">
+                  <button
+                    type="button"
+                    className="btn ghost small"
+                    disabled={foodBusy}
+                    onClick={() => startFoodEdit(f)}
+                  >
+                    Düzenle
+                  </button>
+                  <button
+                    type="button"
+                    className="btn ghost small"
+                    disabled={foodBusy || !!f.usedInLogs}
+                    title={f.usedInLogs ? 'Önce günlük kayıtlarını kaldır' : undefined}
+                    onClick={() => void onDeleteFood(f)}
+                  >
+                    Sil
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {editDraft && (
+          <form className="form compact food-mine-edit" onSubmit={(e) => void onSaveFoodEdit(e)}>
+            <h3 className="h3">Düzenle</h3>
+            <label>
+              Ad
+              <input
+                value={editDraft.name}
+                onChange={(e) => setEditDraft((d) => (d ? { ...d, name: e.target.value } : d))}
+                maxLength={200}
+              />
+            </label>
+            <div className="macro-inputs">
+              <label>
+                kcal / 100g
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={editDraft.caloriesPer100g}
+                  onChange={(e) =>
+                    setEditDraft((d) => (d ? { ...d, caloriesPer100g: Number(e.target.value) } : d))
+                  }
+                />
+              </label>
+              <label>
+                P
+                <input
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={editDraft.proteinPer100g}
+                  onChange={(e) =>
+                    setEditDraft((d) => (d ? { ...d, proteinPer100g: Number(e.target.value) } : d))
+                  }
+                />
+              </label>
+              <label>
+                K
+                <input
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={editDraft.carbsPer100g}
+                  onChange={(e) =>
+                    setEditDraft((d) => (d ? { ...d, carbsPer100g: Number(e.target.value) } : d))
+                  }
+                />
+              </label>
+              <label>
+                Y
+                <input
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={editDraft.fatPer100g}
+                  onChange={(e) => setEditDraft((d) => (d ? { ...d, fatPer100g: Number(e.target.value) } : d))}
+                />
+              </label>
+            </div>
+            <div className="food-mine-actions">
+              <button type="submit" className="btn primary small" disabled={foodBusy}>
+                Kaydet
+              </button>
+              <button
+                type="button"
+                className="btn ghost small"
+                disabled={foodBusy}
+                onClick={() => setEditDraft(null)}
+              >
+                Vazgeç
+              </button>
+            </div>
+          </form>
+        )}
+      </section>
+      </div>
     </div>
   )
 }
