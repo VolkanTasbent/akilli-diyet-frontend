@@ -3,7 +3,7 @@ type Props = {
   variant?: 'default' | 'auth'
 }
 
-const AUTHOR_LINKEDIN = 'https://www.linkedin.com/in/volkantasbent'
+const AUTHOR_LINKEDIN = 'https://www.linkedin.com/in/volkan-tasbent/'
 
 export function SiteFooter({ variant = 'default' }: Props) {
   const cls = variant === 'auth' ? 'site-footer site-footer--auth' : 'site-footer'
