@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import api, { apiUrl } from '../api/client'
+import { SiteFooter } from '../components/SiteFooter'
 import { useAuth } from '../context/AuthContext'
 import { useUserAvatarObjectUrl } from '../hooks/useUserAvatarObjectUrl'
 import type { ActivityLevel, DietGoal, Gender, FoodResponse, UserResponse } from '../types'
@@ -547,6 +548,7 @@ export function ProfilePage() {
         )}
       </section>
       </div>
+      <SiteFooter />
     </div>
   )
 }

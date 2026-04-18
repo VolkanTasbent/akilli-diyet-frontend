@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../api/client'
+import { SiteFooter } from '../components/SiteFooter'
 
 export function ResetPasswordPage() {
   const [params] = useSearchParams()
@@ -76,6 +77,7 @@ export function ResetPasswordPage() {
           <Link to="/login">← Giriş</Link>
         </p>
       </div>
+      <SiteFooter variant="auth" />
     </div>
   )
 }

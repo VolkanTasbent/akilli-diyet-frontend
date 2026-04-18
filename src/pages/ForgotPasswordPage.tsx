@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/client'
+import { SiteFooter } from '../components/SiteFooter'
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -64,6 +65,7 @@ export function ForgotPasswordPage() {
           </>
         )}
       </div>
+      <SiteFooter variant="auth" />
     </div>
   )
 }

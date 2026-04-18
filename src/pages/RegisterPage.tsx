@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getApiErrorMessage } from '../api/client'
+import { SiteFooter } from '../components/SiteFooter'
 import { useAuth } from '../context/AuthContext'
 
 export function RegisterPage() {
@@ -91,6 +92,7 @@ export function RegisterPage() {
           Zaten hesabınız var mı? <Link to="/login">Giriş yapın</Link>
         </p>
       </div>
+      <SiteFooter variant="auth" />
     </div>
   )
 }

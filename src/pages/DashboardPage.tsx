@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { SiteFooter } from '../components/SiteFooter'
 import { RemindersPanel } from '../components/RemindersPanel'
 import { ShareWeeklySummaryCard } from '../components/ShareWeeklySummaryCard'
 import { WeightWeeklySummaryChart } from '../components/WeightWeeklySummaryChart'
@@ -1200,6 +1201,7 @@ export function DashboardPage() {
           )}
         </div>
       )}
+      <SiteFooter />
     </div>
   )
 }

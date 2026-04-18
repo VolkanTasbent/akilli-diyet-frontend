@@ -959,6 +959,44 @@
   width: min(420px, 100%);
 }
 
+.site-footer {
+  width: 100%;
+  max-width: 1120px;
+  margin: 2rem auto 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.layout-dash .site-footer {
+  max-width: 1180px;
+}
+
+.site-footer--auth {
+  margin-top: 1.5rem;
+  padding-top: 0;
+  border-top: none;
+  max-width: min(420px, 100%);
+}
+
+.site-footer-text {
+  margin: 0;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+}
+
+.site-footer-text a {
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.site-footer-text a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .form {
   display: flex;
   flex-direction: column;

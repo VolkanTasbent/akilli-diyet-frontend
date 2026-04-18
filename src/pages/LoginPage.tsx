@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { SiteFooter } from '../components/SiteFooter'
 import { useAuth } from '../context/AuthContext'
 
 export function LoginPage() {
@@ -73,6 +74,7 @@ export function LoginPage() {
           Hesabınız yok mu? <Link to="/register">Kayıt olun</Link>
         </p>
       </div>
+      <SiteFooter variant="auth" />
     </div>
   )
 }
