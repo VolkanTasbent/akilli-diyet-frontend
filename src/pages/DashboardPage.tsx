@@ -73,6 +73,29 @@ function formatDayNavLabel(iso: string) {
   return dt.toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
+const DASH_TAB_COPY = {
+  ozet: {
+    kicker: 'Genel bakış',
+    lead: 'Bugün ve haftanın özeti',
+    desc: 'Kalori, makrolar ve koç notları solda; hatırlatıcı ayarları sağ sütunda.',
+  },
+  besinler: {
+    kicker: 'Besin kaydı',
+    lead: 'Katalog ve günlük liste',
+    desc: 'Ara, seç, gram gir; özel besin ekleyebilir veya kayıtları düzenleyebilirsin.',
+  },
+  hareket: {
+    kicker: 'Yaşam alışkanlıkları',
+    lead: 'Egzersiz, uyku, sıvı, kilo',
+    desc: 'Seçili güne ait tüm hareket ve ölçüm girişleri tek yerde.',
+  },
+  grafikler: {
+    kicker: 'Analiz',
+    lead: 'Trend ve kilo',
+    desc: 'Kalori günleri ve son haftaların kilo seyri.',
+  },
+} as const
+
 export function DashboardPage() {
   const { logout, user } = useAuth()
   const [summaryDate, setSummaryDate] = useState(() => todayISO())
@@ -369,14 +392,20 @@ export function DashboardPage() {
     }
   }
 
+  const tabCopy = DASH_TAB_COPY[dashTab]
+
   return (
-    <div className="layout">
-      <header className="topbar">
-        <div>
-          <h1>Akıllı diyet</h1>
-          <p className="muted small">
-            Merhaba, {user?.displayName} · <Link to="/profile">Profil & hedefler</Link>
-          </p>
+    <div className="layout layout-dash">
+      <header className="topbar topbar-dash">
+        <div className="topbar-brand">
+          <span className="brand-mark" aria-hidden />
+          <div>
+            <h1>Akıllı Diyet</h1>
+            <p className="muted small topbar-tagline">
+              Merhaba, <strong>{user?.displayName}</strong> ·{' '}
+              <Link to="/profile">Profil ve hedefler</Link>
+            </p>
+          </div>
         </div>
         <button type="button" className="btn ghost" onClick={logout}>
           Çıkış
@@ -435,10 +464,15 @@ export function DashboardPage() {
         ))}
       </nav>
 
-      {dashTab === 'ozet' && (
-        <>
-          <RemindersPanel />
+      <header className="tab-panel-intro">
+        <span className="tab-panel-kicker">{tabCopy.kicker}</span>
+        <p className="tab-panel-lead">{tabCopy.lead}</p>
+        <p className="tab-panel-desc muted small">{tabCopy.desc}</p>
+      </header>
 
+      {dashTab === 'ozet' && (
+        <div className="dash-ozet-layout">
+          <div className="dash-ozet-main">
           {weeklyScore && (
         <>
           <section className="card score-card">
@@ -469,7 +503,7 @@ export function DashboardPage() {
 
           {summary && (
         <div className="grid">
-          <section className="card">
+          <section className="card card-priority">
             <div className="day-nav">
               <button
                 type="button"
@@ -619,11 +653,15 @@ export function DashboardPage() {
         </div>
       )}
 
-        </>
+          </div>
+          <aside className="dash-ozet-aside" aria-label="Hatırlatıcılar">
+            <RemindersPanel />
+          </aside>
+        </div>
       )}
 
       {dashTab === 'besinler' && summary && (
-        <div className="grid besinler-grid">
+        <div className="grid besinler-grid tab-panel-block">
           <section className="card">
             <h2>Öğün ekle</h2>
             <p className="muted small">
@@ -877,6 +915,7 @@ export function DashboardPage() {
       )}
 
       {dashTab === 'hareket' && summary && (
+        <div className="tab-panel-block">
         <div className="grid activity-grid">
           <section className="card activity-card">
             <h2>Hareket, sıvı ve ölçüm</h2>
@@ -997,10 +1036,11 @@ export function DashboardPage() {
             <p className="muted small">Aynı güne tekrar kaydedersen değer güncellenir.</p>
           </section>
         </div>
+        </div>
       )}
 
       {dashTab === 'grafikler' && (
-        <>
+        <div className="tab-panel-block tab-panel-stack">
           {(!trends || trends.days.length === 0) && !weightTrends12w && (
             <section className="card">
               <p className="muted small" role="status">
@@ -1042,7 +1082,7 @@ export function DashboardPage() {
               <WeightWeeklySummaryChart trends={weightTrends12w} />
             </section>
           )}
-        </>
+        </div>
       )}
     </div>
   )

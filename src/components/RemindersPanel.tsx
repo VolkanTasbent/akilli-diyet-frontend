@@ -47,7 +47,7 @@ export function RemindersPanel() {
     if (p !== 'granted') {
       setInfo('Bildirim izni verilmedi.')
     } else {
-      setInfo('İzin verildi. Aşağıdaki tarayıcı hatırlatmaları çalışır.')
+      setInfo('İzin verildi. Tarayıcı bildirimleri aşağıdaki ayarlara göre çalışır.')
     }
   }, [])
 
@@ -120,173 +120,195 @@ export function RemindersPanel() {
   const masterEmail = user?.reminderEmailEnabled ?? false
 
   return (
-    <section className="card reminders-card">
-      <h2>Hatırlatıcılar</h2>
+    <section className="card reminders-card reminders-panel">
+      <div className="reminders-panel-head">
+        <h2 className="reminders-title">Hatırlatıcılar</h2>
+        <p className="muted small reminders-lead">
+          Tarayıcı uyarıları bu cihazda; e-posta hesabınıza sunucu üzerinden gider.
+        </p>
+      </div>
 
-      <h3 className="h3">Tarayıcı bildirimleri</h3>
-      <p className="muted small">
-        İzin verildikten sonra bu cihazda çalışır. Su uyarısı için sekme arka planda olabilir; öğün saatleri yerel saate
-        göre kontrol edilir.
-      </p>
-      {info && <p className="muted small">{info}</p>}
-      {perm !== 'granted' && (
-        <button type="button" className="btn secondary" onClick={() => void requestPermission()}>
-          Bildirim izni iste
-        </button>
-      )}
+      <details className="reminder-disclosure" open>
+        <summary className="reminder-disclosure-summary">
+          <span className="reminder-disclosure-title">Tarayıcı bildirimleri</span>
+          <span className="reminder-disclosure-hint muted small">Su ve öğün saatleri</span>
+        </summary>
+        <div className="reminder-disclosure-body">
+          {info && <p className="muted small">{info}</p>}
+          {perm !== 'granted' && (
+            <button type="button" className="btn secondary reminder-perm-btn" onClick={() => void requestPermission()}>
+              Bildirim izni iste
+            </button>
+          )}
 
-      <label className="check-row">
-        <input
-          type="checkbox"
-          checked={prefs.waterEnabled}
-          onChange={(e) => setPrefs((p) => ({ ...p, waterEnabled: e.target.checked }))}
-        />
-        Su hatırlatıcısı (aralıklı)
-      </label>
-      <label className="check-row">
-        <input
-          type="checkbox"
-          checked={prefs.waterOnlyWhenBackground}
-          onChange={(e) => setPrefs((p) => ({ ...p, waterOnlyWhenBackground: e.target.checked }))}
-        />
-        Su uyarısı yalnızca sekme arka plandayken
-      </label>
-      <label>
-        Su aralığı (saat)
-        <select
-          value={prefs.waterIntervalHours}
-          onChange={(e) =>
-            setPrefs((p) => ({ ...p, waterIntervalHours: Number(e.target.value) }))
-          }
-        >
-          {[1, 2, 3, 4, 6].map((h) => (
-            <option key={h} value={h}>
-              {h} saat
-            </option>
-          ))}
-        </select>
-      </label>
+          <div className="reminder-split">
+            <div className="reminder-column">
+              <h3 className="reminder-col-title">Su</h3>
+              <label className="check-row">
+                <input
+                  type="checkbox"
+                  checked={prefs.waterEnabled}
+                  onChange={(e) => setPrefs((p) => ({ ...p, waterEnabled: e.target.checked }))}
+                />
+                Aralıklı hatırlat
+              </label>
+              <label className="check-row">
+                <input
+                  type="checkbox"
+                  checked={prefs.waterOnlyWhenBackground}
+                  onChange={(e) => setPrefs((p) => ({ ...p, waterOnlyWhenBackground: e.target.checked }))}
+                />
+                Yalnızca sekme arka plandayken
+              </label>
+              <label>
+                Aralık (saat)
+                <select
+                  value={prefs.waterIntervalHours}
+                  onChange={(e) =>
+                    setPrefs((p) => ({ ...p, waterIntervalHours: Number(e.target.value) }))
+                  }
+                >
+                  {[1, 2, 3, 4, 6].map((h) => (
+                    <option key={h} value={h}>
+                      {h} saat
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
 
-      <label className="check-row">
-        <input
-          type="checkbox"
-          checked={prefs.breakfastEnabled}
-          onChange={(e) => setPrefs((p) => ({ ...p, breakfastEnabled: e.target.checked }))}
-        />
-        Kahvaltı hatırlatması
-      </label>
-      <label>
-        Kahvaltı saati
-        <input
-          type="time"
-          value={prefs.breakfastTime}
-          onChange={(e) => setPrefs((p) => ({ ...p, breakfastTime: e.target.value }))}
-        />
-      </label>
+            <div className="reminder-column">
+              <h3 className="reminder-col-title">Öğün saatleri</h3>
+              <div className="reminder-meal-rows">
+                <div className="reminder-meal-row">
+                  <label className="check-row reminder-meal-check">
+                    <input
+                      type="checkbox"
+                      checked={prefs.breakfastEnabled}
+                      onChange={(e) => setPrefs((p) => ({ ...p, breakfastEnabled: e.target.checked }))}
+                    />
+                    Kahvaltı
+                  </label>
+                  <input
+                    type="time"
+                    className="reminder-time-input"
+                    value={prefs.breakfastTime}
+                    onChange={(e) => setPrefs((p) => ({ ...p, breakfastTime: e.target.value }))}
+                  />
+                </div>
+                <div className="reminder-meal-row">
+                  <label className="check-row reminder-meal-check">
+                    <input
+                      type="checkbox"
+                      checked={prefs.lunchEnabled}
+                      onChange={(e) => setPrefs((p) => ({ ...p, lunchEnabled: e.target.checked }))}
+                    />
+                    Öğle
+                  </label>
+                  <input
+                    type="time"
+                    className="reminder-time-input"
+                    value={prefs.lunchTime}
+                    onChange={(e) => setPrefs((p) => ({ ...p, lunchTime: e.target.value }))}
+                  />
+                </div>
+                <div className="reminder-meal-row">
+                  <label className="check-row reminder-meal-check">
+                    <input
+                      type="checkbox"
+                      checked={prefs.dinnerEnabled}
+                      onChange={(e) => setPrefs((p) => ({ ...p, dinnerEnabled: e.target.checked }))}
+                    />
+                    Akşam
+                  </label>
+                  <input
+                    type="time"
+                    className="reminder-time-input"
+                    value={prefs.dinnerTime}
+                    onChange={(e) => setPrefs((p) => ({ ...p, dinnerTime: e.target.value }))}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
 
-      <label className="check-row">
-        <input
-          type="checkbox"
-          checked={prefs.lunchEnabled}
-          onChange={(e) => setPrefs((p) => ({ ...p, lunchEnabled: e.target.checked }))}
-        />
-        Öğle hatırlatması
-      </label>
-      <label>
-        Öğle saati
-        <input
-          type="time"
-          value={prefs.lunchTime}
-          onChange={(e) => setPrefs((p) => ({ ...p, lunchTime: e.target.value }))}
-        />
-      </label>
+      <details className="reminder-disclosure">
+        <summary className="reminder-disclosure-summary">
+          <span className="reminder-disclosure-title">E-posta</span>
+          <span className="reminder-disclosure-hint muted small">Kayıtlı adresinize</span>
+        </summary>
+        <div className="reminder-disclosure-body">
+          <p className="muted small">
+            SMTP yapılandırılmış sunucuda öğün saatleri Türkiye saatiyle (varsayılan 08:30 / 13:00 / 19:30) gönderilir.
+            Su e-postası birkaç saatte bir.
+          </p>
+          {emailErr && <p className="error small">{emailErr}</p>}
 
-      <label className="check-row">
-        <input
-          type="checkbox"
-          checked={prefs.dinnerEnabled}
-          onChange={(e) => setPrefs((p) => ({ ...p, dinnerEnabled: e.target.checked }))}
-        />
-        Akşam hatırlatması
-      </label>
-      <label>
-        Akşam saati
-        <input
-          type="time"
-          value={prefs.dinnerTime}
-          onChange={(e) => setPrefs((p) => ({ ...p, dinnerTime: e.target.value }))}
-        />
-      </label>
+          <label className="check-row">
+            <input
+              type="checkbox"
+              checked={masterEmail}
+              disabled={!user || emailBusy}
+              onChange={(e) => {
+                const v = e.target.checked
+                if (!v) {
+                  void patchEmailPrefs({
+                    reminderEmailEnabled: false,
+                    reminderEmailWater: false,
+                    reminderEmailBreakfast: false,
+                    reminderEmailLunch: false,
+                    reminderEmailDinner: false,
+                  })
+                } else {
+                  void patchEmailPrefs({ reminderEmailEnabled: true })
+                }
+              }}
+            />
+            E-posta hatırlatmaları
+          </label>
 
-      <h3 className="h3">E-posta hatırlatmaları</h3>
-      <p className="muted small">
-        Sunucu tarafında gönderilir; çalışması için SMTP yapılandırması gerekir (
-        <code>spring.mail.*</code> ve <code>app.mail.from</code>). Öğün saatleri sunucuda Türkiye saati (
-        <strong>Europe/Istanbul</strong>) ile{' '}
-        <code>08:30</code>, <code>13:00</code>, <code>19:30</code> (ortam değişkenleriyle değiştirilebilir). Su
-        e-postası en az 2 saatte bir gönderilir.
-      </p>
-      {emailErr && <p className="error small">{emailErr}</p>}
-
-      <label className="check-row">
-        <input
-          type="checkbox"
-          checked={masterEmail}
-          disabled={!user || emailBusy}
-          onChange={(e) => {
-            const v = e.target.checked
-            if (!v) {
-              void patchEmailPrefs({
-                reminderEmailEnabled: false,
-                reminderEmailWater: false,
-                reminderEmailBreakfast: false,
-                reminderEmailLunch: false,
-                reminderEmailDinner: false,
-              })
-            } else {
-              void patchEmailPrefs({ reminderEmailEnabled: true })
-            }
-          }}
-        />
-        E-posta hatırlatmalarını aç (hesabımdaki adrese)
-      </label>
-
-      <label className="check-row">
-        <input
-          type="checkbox"
-          checked={user?.reminderEmailWater ?? false}
-          disabled={!user || emailBusy || !masterEmail}
-          onChange={(e) => void patchEmailPrefs({ reminderEmailWater: e.target.checked })}
-        />
-        Su (e-posta)
-      </label>
-      <label className="check-row">
-        <input
-          type="checkbox"
-          checked={user?.reminderEmailBreakfast ?? false}
-          disabled={!user || emailBusy || !masterEmail}
-          onChange={(e) => void patchEmailPrefs({ reminderEmailBreakfast: e.target.checked })}
-        />
-        Kahvaltı (e-posta)
-      </label>
-      <label className="check-row">
-        <input
-          type="checkbox"
-          checked={user?.reminderEmailLunch ?? false}
-          disabled={!user || emailBusy || !masterEmail}
-          onChange={(e) => void patchEmailPrefs({ reminderEmailLunch: e.target.checked })}
-        />
-        Öğle (e-posta)
-      </label>
-      <label className="check-row">
-        <input
-          type="checkbox"
-          checked={user?.reminderEmailDinner ?? false}
-          disabled={!user || emailBusy || !masterEmail}
-          onChange={(e) => void patchEmailPrefs({ reminderEmailDinner: e.target.checked })}
-        />
-        Akşam (e-posta)
-      </label>
+          <div className="reminder-email-grid">
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={user?.reminderEmailWater ?? false}
+                disabled={!user || emailBusy || !masterEmail}
+                onChange={(e) => void patchEmailPrefs({ reminderEmailWater: e.target.checked })}
+              />
+              Su
+            </label>
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={user?.reminderEmailBreakfast ?? false}
+                disabled={!user || emailBusy || !masterEmail}
+                onChange={(e) => void patchEmailPrefs({ reminderEmailBreakfast: e.target.checked })}
+              />
+              Kahvaltı
+            </label>
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={user?.reminderEmailLunch ?? false}
+                disabled={!user || emailBusy || !masterEmail}
+                onChange={(e) => void patchEmailPrefs({ reminderEmailLunch: e.target.checked })}
+              />
+              Öğle
+            </label>
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={user?.reminderEmailDinner ?? false}
+                disabled={!user || emailBusy || !masterEmail}
+                onChange={(e) => void patchEmailPrefs({ reminderEmailDinner: e.target.checked })}
+              />
+              Akşam
+            </label>
+          </div>
+        </div>
+      </details>
     </section>
   )
 }
