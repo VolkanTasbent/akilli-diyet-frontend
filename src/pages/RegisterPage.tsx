@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { getApiErrorMessage } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 
 export function RegisterPage() {
@@ -23,8 +24,11 @@ export function RegisterPage() {
     try {
       await register(email, password, displayName)
       navigate('/')
-    } catch {
-      setError('Kayıt başarısız. E-posta kullanımda olabilir veya veriler geçersiz.')
+    } catch (e) {
+      setError(
+        getApiErrorMessage(e) ??
+          'Kayıt başarısız. E-posta kullanımda olabilir veya veriler geçersiz.',
+      )
     } finally {
       setBusy(false)
     }

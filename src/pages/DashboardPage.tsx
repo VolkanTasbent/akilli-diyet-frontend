@@ -4,13 +4,15 @@ import { RemindersPanel } from '../components/RemindersPanel'
 import { ShareWeeklySummaryCard } from '../components/ShareWeeklySummaryCard'
 import { WeightWeeklySummaryChart } from '../components/WeightWeeklySummaryChart'
 import { WeeklyTrendChart } from '../components/WeeklyTrendChart'
-import api from '../api/client'
+import api, { getApiErrorMessage } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import type {
   DailySummaryDto,
+  DailyTargetsDto,
   ExerciseLogResponseDto,
   FoodLogResponseDto,
   FoodResponse,
+  MealMacroDto,
   MealType,
   TrendRangeDto,
   WeeklyScoreDto,
@@ -21,6 +23,23 @@ const MEAL_LABEL: Record<MealType, string> = {
   LUNCH: 'Öğle',
   DINNER: 'Akşam',
   SNACK: 'Ara öğün',
+}
+
+const EMPTY_MEAL: MealMacroDto = { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 }
+
+const FALLBACK_TARGETS: DailyTargetsDto = {
+  bmr: 0,
+  tdee: 0,
+  targetCalories: 2000,
+  targetProteinG: 120,
+  targetCarbsG: 200,
+  targetFatG: 65,
+  suggestedDailyDeficit: null,
+  explanationTr: 'Hedef bilgisi alınamadı; profilini tamamla veya sayfayı yenile.',
+}
+
+function mealMacroFor(s: DailySummaryDto, k: MealType): MealMacroDto {
+  return s.byMeal?.[k] ?? EMPTY_MEAL
 }
 
 function localISODate(d: Date) {
@@ -88,6 +107,7 @@ export function DashboardPage() {
   const [customP, setCustomP] = useState(10)
   const [customC, setCustomC] = useState(20)
   const [customF, setCustomF] = useState(5)
+  const [summaryLoading, setSummaryLoading] = useState(true)
 
   const load = useCallback(async () => {
     setError(null)
@@ -131,7 +151,21 @@ export function DashboardPage() {
   }, [summaryDate])
 
   useEffect(() => {
-    load().catch(() => setError('Özet yüklenemedi.'))
+    let cancelled = false
+    setSummaryLoading(true)
+    load()
+      .catch((e) => {
+        if (!cancelled) {
+          setSummary(null)
+          setError(getApiErrorMessage(e) ?? 'Özet yüklenemedi. Oturum veya sunucu bağlantısını kontrol et.')
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setSummaryLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [load])
 
   useEffect(() => {
@@ -350,6 +384,34 @@ export function DashboardPage() {
 
       {error && <p className="error banner">{error}</p>}
 
+      {summaryLoading && (
+        <p className="muted banner" role="status">
+          Özet yükleniyor…
+        </p>
+      )}
+
+      {!summaryLoading && !summary && error && (
+        <section className="card">
+          <p className="muted">Günlük özet alınamadı. Ağ sekmesinde <code>/api/me/summary</code> isteğinin 200 döndüğünü kontrol et.</p>
+          <button
+            type="button"
+            className="btn primary"
+            onClick={() => {
+              setSummaryLoading(true)
+              setError(null)
+              load()
+                .catch((e) => {
+                  setSummary(null)
+                  setError(getApiErrorMessage(e) ?? 'Özet yüklenemedi.')
+                })
+                .finally(() => setSummaryLoading(false))
+            }}
+          >
+            Yeniden dene
+          </button>
+        </section>
+      )}
+
       <RemindersPanel />
 
       {weeklyScore && (
@@ -366,7 +428,7 @@ export function DashboardPage() {
               </div>
             </div>
             <ul className="list">
-              {weeklyScore.hintsTr.map((h) => (
+              {(weeklyScore.hintsTr ?? []).map((h) => (
                 <li key={h}>{h}</li>
               ))}
             </ul>
@@ -456,7 +518,7 @@ export function DashboardPage() {
             <p className="stat">
               <span className="stat-label">Alınan (yemek)</span>
               <span className="stat-value">
-                {summary.consumedCalories} / {summary.targets.targetCalories} kcal
+                {summary.consumedCalories} / {(summary.targets ?? FALLBACK_TARGETS).targetCalories} kcal
               </span>
             </p>
             {summary.exerciseCaloriesBurned > 0 && (
@@ -473,24 +535,24 @@ export function DashboardPage() {
               <span className="stat-label">Kalan bütçe</span>
               <span className="stat-value">{summary.caloriesRemaining} kcal</span>
             </p>
-            <p className="muted small">{summary.targets.explanationTr}</p>
+            <p className="muted small">{(summary.targets ?? FALLBACK_TARGETS).explanationTr}</p>
             <div className="macro-row">
               <div>
                 <span className="macro-title">Protein</span>
                 <strong>
-                  {summary.proteinG}g / {summary.targets.targetProteinG}g
+                  {summary.proteinG}g / {(summary.targets ?? FALLBACK_TARGETS).targetProteinG}g
                 </strong>
               </div>
               <div>
                 <span className="macro-title">Karbonhidrat</span>
                 <strong>
-                  {summary.carbsG}g / {summary.targets.targetCarbsG}g
+                  {summary.carbsG}g / {(summary.targets ?? FALLBACK_TARGETS).targetCarbsG}g
                 </strong>
               </div>
               <div>
                 <span className="macro-title">Yağ</span>
                 <strong>
-                  {summary.fatG}g / {summary.targets.targetFatG}g
+                  {summary.fatG}g / {(summary.targets ?? FALLBACK_TARGETS).targetFatG}g
                 </strong>
               </div>
             </div>
@@ -531,15 +593,15 @@ export function DashboardPage() {
           <section className="card">
             <h2>Koç mesajları</h2>
             <ul className="list">
-              {summary.coachMessagesTr.map((m) => (
+              {(summary.coachMessagesTr ?? []).map((m) => (
                 <li key={m}>{m}</li>
               ))}
             </ul>
-            {summary.suggestionsTr.length > 0 && (
+            {(summary.suggestionsTr ?? []).length > 0 && (
               <>
                 <h3 className="h3">Öneriler</h3>
                 <ul className="list">
-                  {summary.suggestionsTr.map((m) => (
+                  {(summary.suggestionsTr ?? []).map((m) => (
                     <li key={m}>{m}</li>
                   ))}
                 </ul>
@@ -550,16 +612,18 @@ export function DashboardPage() {
           <section className="card">
             <h2>Öğünlere göre</h2>
             <div className="meal-grid">
-              {(Object.keys(MEAL_LABEL) as MealType[]).map((k) => (
-                <div key={k} className="meal-pill">
-                  <div className="meal-name">{MEAL_LABEL[k]}</div>
-                  <div className="meal-kcal">{summary.byMeal[k].calories} kcal</div>
-                  <div className="muted small">
-                    P {summary.byMeal[k].proteinG}g · K {summary.byMeal[k].carbsG}g · Y{' '}
-                    {summary.byMeal[k].fatG}g
+              {(Object.keys(MEAL_LABEL) as MealType[]).map((k) => {
+                const mm = mealMacroFor(summary, k)
+                return (
+                  <div key={k} className="meal-pill">
+                    <div className="meal-name">{MEAL_LABEL[k]}</div>
+                    <div className="meal-kcal">{mm.calories} kcal</div>
+                    <div className="muted small">
+                      P {mm.proteinG}g · K {mm.carbsG}g · Y {mm.fatG}g
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </section>
 

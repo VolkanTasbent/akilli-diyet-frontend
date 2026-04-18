@@ -119,7 +119,8 @@ function buildShareCanvas(
   ctx.fillText('Haftalik notlar', 110, y)
   y += 55
 
-  weeklyScore.hintsTr.slice(0, 3).forEach((hint, idx) => {
+  const hints = (weeklyScore.hintsTr ?? []).slice(0, 3)
+  hints.forEach((hint, idx) => {
     const maxLen = 62
     const text = hint.length > maxLen ? `${hint.slice(0, maxLen - 1)}…` : hint
     ctx.fillStyle = '#ffffff'
