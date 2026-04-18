@@ -6,6 +6,7 @@ import { WeightWeeklySummaryChart } from '../components/WeightWeeklySummaryChart
 import { WeeklyTrendChart } from '../components/WeeklyTrendChart'
 import api, { getApiErrorMessage } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { useUserAvatarObjectUrl } from '../hooks/useUserAvatarObjectUrl'
 import {
   loadFavoriteFoodIds,
   saveFavoriteFoodIds,
@@ -102,7 +103,8 @@ const DASH_TAB_COPY = {
 } as const
 
 export function DashboardPage() {
-  const { logout, user } = useAuth()
+  const { logout, user, token } = useAuth()
+  const avatarUrl = useUserAvatarObjectUrl(user, token)
   const [summaryDate, setSummaryDate] = useState(() => todayISO())
   const [summary, setSummary] = useState<DailySummaryDto | null>(null)
   const [weeklyScore, setWeeklyScore] = useState<WeeklyScoreDto | null>(null)
@@ -419,7 +421,11 @@ export function DashboardPage() {
     <div className="layout layout-dash">
       <header className="topbar topbar-dash">
         <div className="topbar-brand">
-          <span className="brand-mark" aria-hidden />
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" className="user-avatar user-avatar--sm" width={40} height={40} />
+          ) : (
+            <span className="brand-mark" aria-hidden />
+          )}
           <div>
             <h1>Akıllı Diyet</h1>
             <p className="muted small topbar-tagline">

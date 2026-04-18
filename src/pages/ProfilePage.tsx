@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { useUserAvatarObjectUrl } from '../hooks/useUserAvatarObjectUrl'
 import type { ActivityLevel, DietGoal, Gender, FoodResponse, UserResponse } from '../types'
 
 type FoodEditDraft = {
@@ -14,7 +15,7 @@ type FoodEditDraft = {
 }
 
 export function ProfilePage() {
-  const { refreshUser } = useAuth()
+  const { refreshUser, token, user } = useAuth()
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [form, setForm] = useState<Partial<UserResponse>>({})
@@ -22,6 +23,10 @@ export function ProfilePage() {
   const [foodBusy, setFoodBusy] = useState(false)
   const [foodErr, setFoodErr] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState<FoodEditDraft | null>(null)
+  const [avatarBusy, setAvatarBusy] = useState(false)
+
+  const mergedUser = user ? ({ ...user, ...form } as UserResponse) : null
+  const avatarPreviewUrl = useUserAvatarObjectUrl(mergedUser, token)
 
   const loadCustomFoods = useCallback(async () => {
     const { data } = await api.get<FoodResponse[]>('/api/foods/mine')
@@ -38,6 +43,62 @@ export function ProfilePage() {
   useEffect(() => {
     loadCustomFoods().catch(() => setCustomFoods([]))
   }, [loadCustomFoods])
+
+  async function onAvatarFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !token) return
+    setErr(null)
+    setMsg(null)
+    setAvatarBusy(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/me/avatar', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        setErr(text.trim() || 'Fotoğraf yüklenemedi.')
+        return
+      }
+      const data = (await res.json()) as UserResponse
+      setForm((f) => ({ ...f, hasAvatar: data.hasAvatar, avatarUpdatedAt: data.avatarUpdatedAt }))
+      await refreshUser()
+      setMsg('Profil fotoğrafı güncellendi.')
+    } catch {
+      setErr('Fotoğraf yüklenemedi.')
+    } finally {
+      setAvatarBusy(false)
+    }
+  }
+
+  async function onRemoveAvatar() {
+    if (!token) return
+    setErr(null)
+    setMsg(null)
+    setAvatarBusy(true)
+    try {
+      const res = await fetch('/api/me/avatar', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) {
+        setErr('Fotoğraf kaldırılamadı.')
+        return
+      }
+      const data = (await res.json()) as UserResponse
+      setForm((f) => ({ ...f, hasAvatar: data.hasAvatar, avatarUpdatedAt: data.avatarUpdatedAt }))
+      await refreshUser()
+      setMsg('Profil fotoğrafı kaldırıldı.')
+    } catch {
+      setErr('Fotoğraf kaldırılamadı.')
+    } finally {
+      setAvatarBusy(false)
+    }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -137,6 +198,48 @@ export function ProfilePage() {
 
       {err && <p className="error banner">{err}</p>}
       {msg && <p className="success banner">{msg}</p>}
+
+      <section className="card profile-avatar-card">
+        <h2>Profil fotoğrafı</h2>
+        <p className="muted small">JPEG, PNG, WebP veya GIF; en fazla 2 MB.</p>
+        <div className="profile-avatar-row">
+          {avatarPreviewUrl ? (
+            <img
+              src={avatarPreviewUrl}
+              alt="Profil"
+              className="user-avatar user-avatar--lg"
+              width={96}
+              height={96}
+            />
+          ) : (
+            <div className="user-avatar user-avatar--lg user-avatar--placeholder" aria-hidden>
+              {(form.displayName ?? user?.displayName ?? '?').slice(0, 1).toUpperCase()}
+            </div>
+          )}
+          <div className="profile-avatar-actions">
+            <label className="btn ghost small">
+              {avatarBusy ? 'Yükleniyor…' : 'Fotoğraf seç'}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                className="sr-only"
+                disabled={avatarBusy}
+                onChange={(ev) => void onAvatarFile(ev)}
+              />
+            </label>
+            {(form.hasAvatar ?? user?.hasAvatar) && (
+              <button
+                type="button"
+                className="btn ghost small"
+                disabled={avatarBusy}
+                onClick={() => void onRemoveAvatar()}
+              >
+                Kaldır
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
 
       <section className="card food-mine-section">
         <h2>Özel besinlerim</h2>

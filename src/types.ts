@@ -31,6 +31,9 @@ export type UserResponse = {
   reminderEmailBreakfast?: boolean
   reminderEmailLunch?: boolean
   reminderEmailDinner?: boolean
+  hasAvatar?: boolean
+  /** ISO-8601; önbellek kırmak ve yeniden fetch için */
+  avatarUpdatedAt?: string | null
 }
 
 export type AuthResponse = {
