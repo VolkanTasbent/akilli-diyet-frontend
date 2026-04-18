@@ -371,7 +371,52 @@
   scrollbar-color: var(--border-strong) transparent;
 }
 
+.food-catalog-item {
+  display: flex;
+  align-items: stretch;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.food-fav-btn {
+  flex-shrink: 0;
+  width: 2.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, #ffffff, #f1f4f9);
+  cursor: pointer;
+  color: var(--muted);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, var(--shadow-xs);
+  transition: color 0.14s ease, border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
+}
+
+.food-fav-btn:hover {
+  color: var(--accent);
+  border-color: rgba(13, 107, 99, 0.28);
+  background: linear-gradient(180deg, #ffffff, var(--accent-muted));
+}
+
+.food-fav-btn.is-fav {
+  color: #b45309;
+  border-color: rgba(180, 83, 9, 0.35);
+  background: linear-gradient(180deg, #fffbeb, #fde68a);
+}
+
+.food-fav-btn.is-fav:hover {
+  color: #92400e;
+}
+
+.food-fav-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
 .food-catalog-row {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -431,7 +476,7 @@
 }
 
 @media (max-width: 520px) {
-  .food-catalog-row {
+  .food-catalog-item .food-catalog-row {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -442,6 +487,11 @@
 
   .food-catalog-macros {
     white-space: normal;
+  }
+
+  .food-fav-btn {
+    width: 2.85rem;
+    min-height: 2.85rem;
   }
 }
 
@@ -653,6 +703,10 @@
 @media (min-width: 900px) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .coach-panel {
+    grid-column: 1 / -1;
   }
 }
 
@@ -957,6 +1011,45 @@
 .meal-pill:hover {
   border-color: rgba(13, 107, 99, 0.2);
   box-shadow: var(--shadow-sm);
+}
+
+.meal-breakdown-hint {
+  margin: -0.25rem 0 0.85rem;
+}
+
+.coach-panel-hint {
+  margin: -0.15rem 0 0.85rem;
+}
+
+.coach-message-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.coach-message-item {
+  position: relative;
+  margin: 0;
+  padding: 0.75rem 0.85rem 0.75rem 0.95rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  background: linear-gradient(90deg, var(--accent-muted), rgba(255, 255, 255, 0.4));
+  border: 1px solid rgba(13, 107, 99, 0.12);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--accent-bright);
+  box-shadow: var(--shadow-xs);
+}
+
+.coach-suggestion-list {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 
 .meal-name {

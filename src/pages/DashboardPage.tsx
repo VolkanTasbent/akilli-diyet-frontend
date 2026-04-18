@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { RemindersPanel } from '../components/RemindersPanel'
 import { ShareWeeklySummaryCard } from '../components/ShareWeeklySummaryCard'
@@ -6,6 +6,11 @@ import { WeightWeeklySummaryChart } from '../components/WeightWeeklySummaryChart
 import { WeeklyTrendChart } from '../components/WeeklyTrendChart'
 import api, { getApiErrorMessage } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import {
+  loadFavoriteFoodIds,
+  saveFavoriteFoodIds,
+  sortFoodsByFavorites,
+} from '../lib/foodFavorites'
 import type {
   DailySummaryDto,
   DailyTargetsDto,
@@ -103,6 +108,7 @@ export function DashboardPage() {
   const [weeklyScore, setWeeklyScore] = useState<WeeklyScoreDto | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [foods, setFoods] = useState<FoodResponse[]>([])
+  const [favoriteFoodIds, setFavoriteFoodIds] = useState(() => loadFavoriteFoodIds())
   const [foodQuery, setFoodQuery] = useState('')
   const [selectedFood, setSelectedFood] = useState<FoodResponse | null>(null)
   const [grams, setGrams] = useState(100)
@@ -394,6 +400,21 @@ export function DashboardPage() {
 
   const tabCopy = DASH_TAB_COPY[dashTab]
 
+  const foodsSorted = useMemo(
+    () => sortFoodsByFavorites(foods, favoriteFoodIds),
+    [foods, favoriteFoodIds],
+  )
+
+  function toggleFoodFavorite(foodId: number) {
+    setFavoriteFoodIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(foodId)) next.delete(foodId)
+      else next.add(foodId)
+      saveFavoriteFoodIds(next)
+      return next
+    })
+  }
+
   return (
     <div className="layout layout-dash">
       <header className="topbar topbar-dash">
@@ -614,27 +635,11 @@ export function DashboardPage() {
             </ul>
           </section>
 
-          <section className="card">
-            <h2>Koç mesajları</h2>
-            <ul className="list">
-              {(summary.coachMessagesTr ?? []).map((m) => (
-                <li key={m}>{m}</li>
-              ))}
-            </ul>
-            {(summary.suggestionsTr ?? []).length > 0 && (
-              <>
-                <h3 className="h3">Öneriler</h3>
-                <ul className="list">
-                  {(summary.suggestionsTr ?? []).map((m) => (
-                    <li key={m}>{m}</li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </section>
-
-          <section className="card">
+          <section className="card meal-breakdown-card">
             <h2>Öğünlere göre</h2>
+            <p className="muted small meal-breakdown-hint">
+              Bugünkü kayıtların öğün bazında kalori ve makro dağılımı.
+            </p>
             <div className="meal-grid">
               {(Object.keys(MEAL_LABEL) as MealType[]).map((k) => {
                 const mm = mealMacroFor(summary, k)
@@ -649,6 +654,34 @@ export function DashboardPage() {
                 )
               })}
             </div>
+          </section>
+
+          <section className="card coach-panel">
+            <h2>Koç özeti</h2>
+            <p className="muted small coach-panel-hint">
+              Uyku, su, makrolar, kalan kalori ve öğün dağılımına göre otomatik üretilir.
+            </p>
+            {(summary.coachMessagesTr ?? []).length === 0 ? (
+              <p className="muted small">Bugün için özel bir koç notu yok; kayıt ekledikçe öneriler güncellenir.</p>
+            ) : (
+              <ul className="coach-message-list">
+                {(summary.coachMessagesTr ?? []).map((m) => (
+                  <li key={m} className="coach-message-item">
+                    {m}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {(summary.suggestionsTr ?? []).length > 0 && (
+              <>
+                <h3 className="h3">Hızlı öneriler</h3>
+                <ul className="coach-suggestion-list">
+                  {(summary.suggestionsTr ?? []).map((m) => (
+                    <li key={m}>{m}</li>
+                  ))}
+                </ul>
+              </>
+            )}
           </section>
         </div>
       )}
@@ -740,35 +773,57 @@ export function DashboardPage() {
                 Besin ara
                 <input value={foodQuery} onChange={(e) => setFoodQuery(e.target.value)} />
               </label>
-              <p className="muted small">Aramayı boş bırakırsanız tüm katalog listelenir; yazdıkça daralır.</p>
+              <p className="muted small">
+                Aramayı boş bırakırsanız tüm katalog listelenir; yazdıkça daralır. Yıldızla favorilere alınanlar
+                listenin üstünde kalır; favoriyi kaldırınca önceki sıraya döner.
+              </p>
               {foods.length > 0 && (
                 <div className="food-catalog" role="listbox" aria-label="Besin listesi">
-                  {foods.map((f) => (
-                    <button
-                      type="button"
-                      key={f.id}
-                      role="option"
-                      aria-selected={selectedFood?.id === f.id}
-                      className={`food-catalog-row${selectedFood?.id === f.id ? ' active' : ''}`}
-                      onClick={() => {
-                        setSelectedFood(f)
-                        if (editingLog) {
-                          setEditingLog({ ...editingLog, foodId: f.id, foodName: f.name })
-                        }
-                      }}
-                    >
-                      <span className="food-catalog-name">
-                        {f.custom ? '★ ' : ''}
-                        {f.name}
-                      </span>
-                      <span className="food-catalog-nutrients">
-                        <span className="food-catalog-kcal">{f.caloriesPer100g} kcal / 100g</span>
-                        <span className="food-catalog-macros muted small">
-                          P {f.proteinPer100g}g · K {f.carbsPer100g}g · Y {f.fatPer100g}g
-                        </span>
-                      </span>
-                    </button>
-                  ))}
+                  {foodsSorted.map((f) => {
+                    const isFav = favoriteFoodIds.has(f.id)
+                    return (
+                      <div key={f.id} className="food-catalog-item" role="presentation">
+                        <button
+                          type="button"
+                          className={`food-fav-btn${isFav ? ' is-fav' : ''}`}
+                          aria-pressed={isFav}
+                          aria-label={isFav ? `${f.name} favorilerden çıkar` : `${f.name} favorilere ekle`}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            toggleFoodFavorite(f.id)
+                          }}
+                        >
+                          <span className="food-fav-icon" aria-hidden>
+                            {isFav ? '★' : '☆'}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={selectedFood?.id === f.id}
+                          className={`food-catalog-row${selectedFood?.id === f.id ? ' active' : ''}`}
+                          onClick={() => {
+                            setSelectedFood(f)
+                            if (editingLog) {
+                              setEditingLog({ ...editingLog, foodId: f.id, foodName: f.name })
+                            }
+                          }}
+                        >
+                          <span className="food-catalog-name">
+                            {f.custom ? '✦ ' : ''}
+                            {f.name}
+                          </span>
+                          <span className="food-catalog-nutrients">
+                            <span className="food-catalog-kcal">{f.caloriesPer100g} kcal / 100g</span>
+                            <span className="food-catalog-macros muted small">
+                              P {f.proteinPer100g}g · K {f.carbsPer100g}g · Y {f.fatPer100g}g
+                            </span>
+                          </span>
+                        </button>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
               {selectedFood && (
