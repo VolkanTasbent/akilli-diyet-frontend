@@ -49,6 +49,8 @@ export type FoodResponse = {
   carbsPer100g: number
   fatPer100g: number
   tablespoonGrams: number | null
+  /** Katalogda yoksa API yanıtında eksik olabilir */
+  sliceGrams?: number | null
   custom: boolean
   /** Günlükte kullanılıyorsa silinemez */
   usedInLogs?: boolean

@@ -140,6 +140,8 @@ export function DashboardPage() {
   const [customP, setCustomP] = useState(10)
   const [customC, setCustomC] = useState(20)
   const [customF, setCustomF] = useState(5)
+  const [customTbsp, setCustomTbsp] = useState('')
+  const [customSlice, setCustomSlice] = useState('')
   const [summaryLoading, setSummaryLoading] = useState(true)
 
   const load = useCallback(async () => {
@@ -269,14 +271,24 @@ export function DashboardPage() {
     setBusy(true)
     setError(null)
     try {
+      const optGrams = (raw: string) => {
+        const t = raw.trim()
+        if (t === '') return null
+        const n = Number(t.replace(',', '.'))
+        return Number.isFinite(n) && n > 0 ? n : null
+      }
       await api.post('/api/foods', {
         name,
         caloriesPer100g: customKcal,
         proteinPer100g: customP,
         carbsPer100g: customC,
         fatPer100g: customF,
+        tablespoonGrams: optGrams(customTbsp),
+        sliceGrams: optGrams(customSlice),
       })
       setCustomName('')
+      setCustomTbsp('')
+      setCustomSlice('')
       setFoodQuery(name)
       await Promise.all([loadFoodLogs()])
     } catch {
@@ -769,6 +781,28 @@ export function DashboardPage() {
                   />
                 </label>
               </div>
+              <div className="macro-inputs">
+                <label>
+                  1 yk ~g (isteğe bağlı)
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="örn. 15"
+                    value={customTbsp}
+                    onChange={(e) => setCustomTbsp(e.target.value)}
+                  />
+                </label>
+                <label>
+                  1 dilim ~g (isteğe bağlı)
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="örn. 28"
+                    value={customSlice}
+                    onChange={(e) => setCustomSlice(e.target.value)}
+                  />
+                </label>
+              </div>
               <button type="submit" className="btn secondary" disabled={busy}>
                 Özel besini kaydet
               </button>
@@ -839,6 +873,7 @@ export function DashboardPage() {
                   {selectedFood.tablespoonGrams != null
                     ? ` · 1 yemek kaşığı ~${selectedFood.tablespoonGrams} g`
                     : ''}
+                  {selectedFood.sliceGrams != null ? ` · 1 dilim ~${selectedFood.sliceGrams} g` : ''}
                 </p>
               )}
               <label>

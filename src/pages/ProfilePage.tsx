@@ -13,6 +13,8 @@ type FoodEditDraft = {
   proteinPer100g: number
   carbsPer100g: number
   fatPer100g: number
+  tablespoonGrams: number | null
+  sliceGrams: number | null
 }
 
 export function ProfilePage() {
@@ -136,6 +138,8 @@ export function ProfilePage() {
       proteinPer100g: f.proteinPer100g,
       carbsPer100g: f.carbsPer100g,
       fatPer100g: f.fatPer100g,
+      tablespoonGrams: f.tablespoonGrams ?? null,
+      sliceGrams: f.sliceGrams ?? null,
     })
   }
 
@@ -154,6 +158,8 @@ export function ProfilePage() {
         proteinPer100g: editDraft.proteinPer100g,
         carbsPer100g: editDraft.carbsPer100g,
         fatPer100g: editDraft.fatPer100g,
+        tablespoonGrams: editDraft.tablespoonGrams,
+        sliceGrams: editDraft.sliceGrams,
       })
       setEditDraft(null)
       await loadCustomFoods()
@@ -446,6 +452,8 @@ export function ProfilePage() {
                     {' '}
                     · {Math.round(f.caloriesPer100g)} kcal / 100g · P {f.proteinPer100g} · K {f.carbsPer100g} · Y{' '}
                     {f.fatPer100g}
+                    {f.tablespoonGrams != null ? ` · 1yk ~${f.tablespoonGrams}g` : ''}
+                    {f.sliceGrams != null ? ` · 1 dilim ~${f.sliceGrams}g` : ''}
                     {f.usedInLogs ? ' · günlükte kullanılıyor' : ''}
                   </span>
                 </div>
@@ -520,7 +528,7 @@ export function ProfilePage() {
                   }
                 />
               </label>
-              <label>
+                <label>
                 Y
                 <input
                   type="number"
@@ -528,6 +536,42 @@ export function ProfilePage() {
                   step={0.1}
                   value={editDraft.fatPer100g}
                   onChange={(e) => setEditDraft((d) => (d ? { ...d, fatPer100g: Number(e.target.value) } : d))}
+                />
+              </label>
+            </div>
+            <div className="macro-inputs">
+              <label>
+                1 yk ~g (boş = yok)
+                <input
+                  type="number"
+                  min={0.1}
+                  step={0.1}
+                  value={editDraft.tablespoonGrams ?? ''}
+                  onChange={(e) =>
+                    setEditDraft((d) =>
+                      d
+                        ? {
+                            ...d,
+                            tablespoonGrams:
+                              e.target.value === '' ? null : Number(e.target.value),
+                          }
+                        : d,
+                    )
+                  }
+                />
+              </label>
+              <label>
+                1 dilim ~g (boş = yok)
+                <input
+                  type="number"
+                  min={0.1}
+                  step={0.1}
+                  value={editDraft.sliceGrams ?? ''}
+                  onChange={(e) =>
+                    setEditDraft((d) =>
+                      d ? { ...d, sliceGrams: e.target.value === '' ? null : Number(e.target.value) } : d,
+                    )
+                  }
                 />
               </label>
             </div>
