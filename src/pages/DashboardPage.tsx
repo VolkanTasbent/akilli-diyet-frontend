@@ -85,6 +85,25 @@ function kcalForGramPortion(caloriesPer100g: number, grams: number) {
   return Math.round((caloriesPer100g * grams) / 100)
 }
 
+type CatalogVariant = 'gram100' | 'tbsp'
+
+type CatalogRow = {
+  key: string
+  food: FoodResponse
+  variant: CatalogVariant
+}
+
+type CatalogPick = {
+  food: FoodResponse
+  variant: CatalogVariant
+}
+
+function formatYkNote(tbspCount: number): string {
+  const t = Number.isFinite(tbspCount) ? tbspCount : 1
+  const s = Number.isInteger(t) ? String(t) : String(Math.round(t * 10) / 10).replace(/\.0$/, '')
+  return `${s} yk`
+}
+
 const DASH_TAB_COPY = {
   ozet: {
     kicker: 'Genel bakış',
@@ -94,7 +113,7 @@ const DASH_TAB_COPY = {
   besinler: {
     kicker: 'Besin kaydı',
     lead: 'Katalog ve günlük liste',
-    desc: 'Ara, seç, gram gir; özel besin ekleyebilir veya kayıtları düzenleyebilirsin.',
+    desc: 'Ara, seç; 100 g satırında gram, alt kartta (varsa) yemek kaşığı ile ekle. Özel besin ve düzenleme aynı.',
   },
   hareket: {
     kicker: 'Yaşam alışkanlıkları',
@@ -118,8 +137,9 @@ export function DashboardPage() {
   const [foods, setFoods] = useState<FoodResponse[]>([])
   const [favoriteFoodIds, setFavoriteFoodIds] = useState(() => loadFavoriteFoodIds())
   const [foodQuery, setFoodQuery] = useState('')
-  const [selectedFood, setSelectedFood] = useState<FoodResponse | null>(null)
+  const [catalogPick, setCatalogPick] = useState<CatalogPick | null>(null)
   const [grams, setGrams] = useState(100)
+  const [tbspCount, setTbspCount] = useState(1)
   const [mealType, setMealType] = useState<MealType>('BREAKFAST')
   const [waterAdd, setWaterAdd] = useState(250)
   const [weightKg, setWeightKg] = useState(70)
@@ -139,6 +159,7 @@ export function DashboardPage() {
     grams: number
     foodId: number
     foodName: string
+    note: string | null
   } | null>(null)
   const [customName, setCustomName] = useState('')
   const [customKcal, setCustomKcal] = useState(200)
@@ -246,18 +267,34 @@ export function DashboardPage() {
     return () => window.clearTimeout(h)
   }, [foodQuery])
 
+  useEffect(() => {
+    if (!catalogPick) return
+    if (catalogPick.variant === 'tbsp') setTbspCount(1)
+    else setGrams(100)
+  }, [catalogPick])
+
   async function onAddFood(e: FormEvent) {
     e.preventDefault()
-    if (!selectedFood) return
+    if (!catalogPick) return
     setBusy(true)
     try {
+      const f = catalogPick.food
+      let gramsPayload: number
+      let note: string | null = null
+      if (catalogPick.variant === 'tbsp' && f.tablespoonGrams != null && f.tablespoonGrams > 0) {
+        gramsPayload = Math.max(1, Math.round(tbspCount * f.tablespoonGrams))
+        note = formatYkNote(tbspCount)
+      } else {
+        gramsPayload = Math.max(1, grams)
+      }
       await api.post('/api/logs/food', {
         date: summaryDate,
         mealType,
-        foodId: selectedFood.id,
-        grams,
+        foodId: f.id,
+        grams: gramsPayload,
+        note,
       })
-      setSelectedFood(null)
+      setCatalogPick(null)
       await Promise.all([load(), loadTrends(), loadWeeklyScore(), loadExerciseRows(), loadFoodLogs()])
     } catch {
       setError('Öğün eklenemedi.')
@@ -310,7 +347,7 @@ export function DashboardPage() {
       await api.delete(`/api/logs/food/${id}`)
       if (editingLog?.id === id) {
         setEditingLog(null)
-        setSelectedFood(null)
+        setCatalogPick(null)
       }
       await Promise.all([load(), loadTrends(), loadWeeklyScore(), loadFoodLogs()])
     } catch {
@@ -323,7 +360,7 @@ export function DashboardPage() {
   async function onSaveFoodLogEdit(e: FormEvent) {
     e.preventDefault()
     if (!editingLog) return
-    const foodId = selectedFood?.id ?? editingLog.foodId
+    const foodId = catalogPick?.food.id ?? editingLog.foodId
     setBusy(true)
     setError(null)
     try {
@@ -332,9 +369,10 @@ export function DashboardPage() {
         mealType: editingLog.mealType,
         foodId,
         grams: editingLog.grams,
+        note: editingLog.note,
       })
       setEditingLog(null)
-      setSelectedFood(null)
+      setCatalogPick(null)
       await Promise.all([load(), loadTrends(), loadWeeklyScore(), loadFoodLogs()])
     } catch {
       setError('Kayıt güncellenemedi.')
@@ -424,6 +462,17 @@ export function DashboardPage() {
     () => sortFoodsByFavorites(foods, favoriteFoodIds),
     [foods, favoriteFoodIds],
   )
+
+  const catalogRows = useMemo(() => {
+    const out: CatalogRow[] = []
+    for (const f of foodsSorted) {
+      out.push({ key: `${f.id}-100g`, food: f, variant: 'gram100' })
+      if (f.tablespoonGrams != null && f.tablespoonGrams > 0) {
+        out.push({ key: `${f.id}-yk`, food: f, variant: 'tbsp' })
+      }
+    }
+    return out
+  }, [foodsSorted])
 
   function toggleFoodFavorite(foodId: number) {
     setFavoriteFoodIds((prev) => {
@@ -821,20 +870,27 @@ export function DashboardPage() {
               </label>
               <p className="muted small">
                 Aramayı boş bırakırsanız tüm katalog listelenir; yazdıkça daralır. Yıldızla favorilere alınanlar
-                listenin üstünde kalır; favoriyi kaldırınca önceki sıraya döner.
+                listenin üstünde kalır; favoriyi kaldırınca önceki sıraya döner. Kaşıklı yemeklerde üst satır{' '}
+                <strong>100 g</strong>, alt satır ayrı kart olarak <strong>1 yemek kaşığı</strong> kaydıdır.
               </p>
               {foods.length > 0 && (
                 <div className="food-catalog" role="listbox" aria-label="Besin listesi">
-                  {foodsSorted.map((f) => {
+                  {catalogRows.map((row) => {
+                    const f = row.food
                     const isFav = favoriteFoodIds.has(f.id)
-                    const kcalYk =
-                      f.tablespoonGrams != null
-                        ? kcalForGramPortion(f.caloriesPer100g, f.tablespoonGrams)
-                        : null
+                    const isTbsp = row.variant === 'tbsp'
                     const kcalDilim =
                       f.sliceGrams != null ? kcalForGramPortion(f.caloriesPer100g, f.sliceGrams) : null
+                    const gPerYk = f.tablespoonGrams ?? 0
+                    const kcalYk = gPerYk > 0 ? kcalForGramPortion(f.caloriesPer100g, gPerYk) : null
+                    const isActive =
+                      catalogPick?.food.id === f.id && catalogPick.variant === row.variant
                     return (
-                      <div key={f.id} className="food-catalog-item" role="presentation">
+                      <div
+                        key={row.key}
+                        className={`food-catalog-item${isTbsp ? ' food-catalog-item--tbsp' : ''}`}
+                        role="presentation"
+                      >
                         <button
                           type="button"
                           className={`food-fav-btn${isFav ? ' is-fav' : ''}`}
@@ -853,33 +909,55 @@ export function DashboardPage() {
                         <button
                           type="button"
                           role="option"
-                          aria-selected={selectedFood?.id === f.id}
-                          className={`food-catalog-row${selectedFood?.id === f.id ? ' active' : ''}`}
+                          aria-selected={isActive}
+                          className={`food-catalog-row${isActive ? ' active' : ''}${
+                            isTbsp ? ' food-catalog-row--tbsp' : ''
+                          }`}
                           onClick={() => {
-                            setSelectedFood(f)
+                            setCatalogPick({ food: f, variant: row.variant })
                             if (editingLog) {
                               setEditingLog({ ...editingLog, foodId: f.id, foodName: f.name })
                             }
                           }}
                         >
-                          <span className="food-catalog-name">
-                            {f.custom ? '✦ ' : ''}
-                            {f.name}
+                          <span className="food-catalog-name food-catalog-name--stacked">
+                            <span className="food-catalog-title-row">
+                              {f.custom ? '✦ ' : ''}
+                              {f.name}
+                            </span>
+                            {!isTbsp ? (
+                              <span className="food-catalog-portion-label muted small">100 g başına</span>
+                            ) : (
+                              <span className="food-catalog-portion-label muted small">1 yemek kaşığı</span>
+                            )}
                           </span>
                           <span className="food-catalog-nutrients">
-                            <span className="food-catalog-kcal-block">
-                              <span className="food-catalog-kcal">{f.caloriesPer100g} kcal / 100g</span>
-                              {(kcalYk != null || kcalDilim != null) && (
-                                <span className="food-catalog-portion-hints muted small">
-                                  {kcalYk != null && <span>~{kcalYk} kcal / 1 yk</span>}
-                                  {kcalYk != null && kcalDilim != null && <span aria-hidden> · </span>}
-                                  {kcalDilim != null && <span>~{kcalDilim} kcal / 1 dilim</span>}
+                            {!isTbsp ? (
+                              <>
+                                <span className="food-catalog-kcal-block">
+                                  <span className="food-catalog-kcal">{f.caloriesPer100g} kcal / 100g</span>
+                                  {kcalDilim != null && f.sliceGrams != null && (
+                                    <span className="food-catalog-portion-hints muted small">
+                                      ~{kcalDilim} kcal / 1 dilim (~{f.sliceGrams} g)
+                                    </span>
+                                  )}
                                 </span>
-                              )}
-                            </span>
-                            <span className="food-catalog-macros muted small">
-                              P {f.proteinPer100g}g · K {f.carbsPer100g}g · Y {f.fatPer100g}g
-                            </span>
+                                <span className="food-catalog-macros muted small">
+                                  P {f.proteinPer100g}g · K {f.carbsPer100g}g · Y {f.fatPer100g}g
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="food-catalog-kcal-block">
+                                  <span className="food-catalog-kcal">
+                                    ~{kcalYk} kcal / 1 yk (~{gPerYk} g)
+                                  </span>
+                                </span>
+                                <span className="food-catalog-macros muted small">
+                                  {`P ${f.proteinPer100g}g · K ${f.carbsPer100g}g · Y ${f.fatPer100g}g (100 g’ya göre)`}
+                                </span>
+                              </>
+                            )}
                           </span>
                         </button>
                       </div>
@@ -887,15 +965,21 @@ export function DashboardPage() {
                   })}
                 </div>
               )}
-              {selectedFood && (
+              {catalogPick && (
                 <p className="muted small">
-                  Seçili: {selectedFood.name} — {selectedFood.caloriesPer100g} kcal / 100g
-                  {selectedFood.tablespoonGrams != null
-                    ? ` · 1 yk ~${selectedFood.tablespoonGrams} g (~${kcalForGramPortion(selectedFood.caloriesPer100g, selectedFood.tablespoonGrams)} kcal)`
-                    : ''}
-                  {selectedFood.sliceGrams != null
-                    ? ` · 1 dilim ~${selectedFood.sliceGrams} g (~${kcalForGramPortion(selectedFood.caloriesPer100g, selectedFood.sliceGrams)} kcal)`
-                    : ''}
+                  Seçili: {catalogPick.food.name}
+                  {catalogPick.variant === 'gram100'
+                    ? ` — ${catalogPick.food.caloriesPer100g} kcal / 100 g`
+                    : ` — 1 yemek kaşığı (~${catalogPick.food.tablespoonGrams} g, ~${kcalForGramPortion(
+                        catalogPick.food.caloriesPer100g,
+                        catalogPick.food.tablespoonGrams ?? 0,
+                      )} kcal)`}
+                  {catalogPick.variant === 'gram100' &&
+                    catalogPick.food.sliceGrams != null &&
+                    ` · 1 dilim ~${catalogPick.food.sliceGrams} g (~${kcalForGramPortion(
+                      catalogPick.food.caloriesPer100g,
+                      catalogPick.food.sliceGrams,
+                    )} kcal)`}
                 </p>
               )}
               <label>
@@ -908,17 +992,30 @@ export function DashboardPage() {
                   ))}
                 </select>
               </label>
-              <label>
-                Gram
-                <input
-                  type="number"
-                  min={1}
-                  step={1}
-                  value={grams}
-                  onChange={(e) => setGrams(Number(e.target.value))}
-                />
-              </label>
-              <button type="submit" className="btn primary" disabled={busy || !selectedFood}>
+              {catalogPick?.variant === 'tbsp' ? (
+                <label>
+                  Yemek kaşığı
+                  <input
+                    type="number"
+                    min={0.5}
+                    step={0.5}
+                    value={tbspCount}
+                    onChange={(e) => setTbspCount(Number(e.target.value))}
+                  />
+                </label>
+              ) : (
+                <label>
+                  Gram
+                  <input
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={grams}
+                    onChange={(e) => setGrams(Number(e.target.value))}
+                  />
+                </label>
+              )}
+              <button type="submit" className="btn primary" disabled={busy || !catalogPick}>
                 Kaydet
               </button>
             </form>
@@ -933,7 +1030,7 @@ export function DashboardPage() {
                     {editingLog?.id === row.id ? (
                       <form onSubmit={onSaveFoodLogEdit} className="food-log-edit form compact">
                         <span className="muted small">
-                          Besin: {selectedFood?.name ?? editingLog.foodName}
+                          Besin: {catalogPick?.food.name ?? editingLog.foodName}
                         </span>
                         <label>
                           Öğün
@@ -979,7 +1076,7 @@ export function DashboardPage() {
                             disabled={busy}
                             onClick={() => {
                               setEditingLog(null)
-                              setSelectedFood(null)
+                              setCatalogPick(null)
                             }}
                           >
                             Vazgeç
@@ -992,7 +1089,8 @@ export function DashboardPage() {
                           <strong>{MEAL_LABEL[row.mealType]}</strong>
                           <span>
                             {' '}
-                            · {row.foodName} · {row.grams} g · ~{row.caloriesEstimate} kcal
+                            · {row.foodName}
+                            {row.note ? ` · ${row.note}` : ''} · {row.grams} g · ~{row.caloriesEstimate} kcal
                           </span>
                         </div>
                         <div className="food-log-actions">
@@ -1007,8 +1105,9 @@ export function DashboardPage() {
                                 grams: row.grams,
                                 foodId: row.foodId,
                                 foodName: row.foodName,
+                                note: row.note ?? null,
                               })
-                              setSelectedFood(null)
+                              setCatalogPick(null)
                               setFoodQuery(row.foodName)
                             }}
                           >

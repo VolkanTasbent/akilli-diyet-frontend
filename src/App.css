@@ -583,6 +583,45 @@
   min-width: 0;
 }
 
+.food-catalog-item--tbsp {
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px dashed rgba(15, 23, 42, 0.12);
+}
+
+.food-catalog-name--stacked {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.08rem;
+  font-weight: 400;
+}
+
+.food-catalog-title-row {
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.food-catalog-portion-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.food-catalog-row--tbsp {
+  background: linear-gradient(180deg, #fffbeb, #fefce8);
+  border-color: rgba(180, 83, 9, 0.2);
+}
+
+.food-catalog-row--tbsp:hover {
+  background: linear-gradient(180deg, #fffbeb, #fde68a);
+}
+
+.food-catalog-row--tbsp.active {
+  background: linear-gradient(180deg, #fef3c7, #fde68a);
+  border-color: rgba(180, 83, 9, 0.35);
+}
+
 .food-fav-btn {
   flex-shrink: 0;
   width: 2.65rem;
