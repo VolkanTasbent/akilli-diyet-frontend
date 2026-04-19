@@ -80,6 +80,11 @@ function formatDayNavLabel(iso: string) {
   return dt.toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
+/** 100 g başına kaloriden, verilen gram için tahmini kcal */
+function kcalForGramPortion(caloriesPer100g: number, grams: number) {
+  return Math.round((caloriesPer100g * grams) / 100)
+}
+
 const DASH_TAB_COPY = {
   ozet: {
     kicker: 'Genel bakış',
@@ -822,6 +827,12 @@ export function DashboardPage() {
                 <div className="food-catalog" role="listbox" aria-label="Besin listesi">
                   {foodsSorted.map((f) => {
                     const isFav = favoriteFoodIds.has(f.id)
+                    const kcalYk =
+                      f.tablespoonGrams != null
+                        ? kcalForGramPortion(f.caloriesPer100g, f.tablespoonGrams)
+                        : null
+                    const kcalDilim =
+                      f.sliceGrams != null ? kcalForGramPortion(f.caloriesPer100g, f.sliceGrams) : null
                     return (
                       <div key={f.id} className="food-catalog-item" role="presentation">
                         <button
@@ -856,7 +867,16 @@ export function DashboardPage() {
                             {f.name}
                           </span>
                           <span className="food-catalog-nutrients">
-                            <span className="food-catalog-kcal">{f.caloriesPer100g} kcal / 100g</span>
+                            <span className="food-catalog-kcal-block">
+                              <span className="food-catalog-kcal">{f.caloriesPer100g} kcal / 100g</span>
+                              {(kcalYk != null || kcalDilim != null) && (
+                                <span className="food-catalog-portion-hints muted small">
+                                  {kcalYk != null && <span>~{kcalYk} kcal / 1 yk</span>}
+                                  {kcalYk != null && kcalDilim != null && <span aria-hidden> · </span>}
+                                  {kcalDilim != null && <span>~{kcalDilim} kcal / 1 dilim</span>}
+                                </span>
+                              )}
+                            </span>
                             <span className="food-catalog-macros muted small">
                               P {f.proteinPer100g}g · K {f.carbsPer100g}g · Y {f.fatPer100g}g
                             </span>
@@ -871,9 +891,11 @@ export function DashboardPage() {
                 <p className="muted small">
                   Seçili: {selectedFood.name} — {selectedFood.caloriesPer100g} kcal / 100g
                   {selectedFood.tablespoonGrams != null
-                    ? ` · 1 yemek kaşığı ~${selectedFood.tablespoonGrams} g`
+                    ? ` · 1 yk ~${selectedFood.tablespoonGrams} g (~${kcalForGramPortion(selectedFood.caloriesPer100g, selectedFood.tablespoonGrams)} kcal)`
                     : ''}
-                  {selectedFood.sliceGrams != null ? ` · 1 dilim ~${selectedFood.sliceGrams} g` : ''}
+                  {selectedFood.sliceGrams != null
+                    ? ` · 1 dilim ~${selectedFood.sliceGrams} g (~${kcalForGramPortion(selectedFood.caloriesPer100g, selectedFood.sliceGrams)} kcal)`
+                    : ''}
                 </p>
               )}
               <label>

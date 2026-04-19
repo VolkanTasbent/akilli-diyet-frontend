@@ -666,11 +666,28 @@
   flex-shrink: 0;
 }
 
+.food-catalog-kcal-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.08rem;
+  text-align: right;
+}
+
 .food-catalog-kcal {
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--accent);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.food-catalog-portion-hints {
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.25;
+  max-width: 14rem;
+  white-space: normal;
   font-variant-numeric: tabular-nums;
 }
 
